@@ -1,8 +1,8 @@
 import sys
 import cx_Oracle
 
- def createTable():
-    connStr = 'mabuyo/databases291@host'
+def createTable():
+    connStr = 'mabuyo/databases291@gwynne.cs.ualberta.ca:1521/CRS'
     createStr = ("create table TOFFEES "
     "(T_NAME VARCHAR(32), SUP_ID INTEGER, PRICE FLOAT, SALES INTEGER, TOTAL INTEGER)")          
 
