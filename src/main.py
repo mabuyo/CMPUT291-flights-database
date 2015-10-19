@@ -1,27 +1,48 @@
 import sys
 import cx_Oracle
+import getpass 
+from sqlite3 import OperationalError
 
-def createTable():
-    connStr = 'mabuyo/databases291@gwynne.cs.ualberta.ca:1521/CRS'
-    createStr = ("create table TOFFEES "
-    "(T_NAME VARCHAR(32), SUP_ID INTEGER, PRICE FLOAT, SALES INTEGER, TOTAL INTEGER)")          
+
+def executeScriptsFromFile(filename):
+
+    # get username
+    user = input("Username [%s]: " % getpass.getuser())
+    if not user:
+        user=getpass.getuser()
+
+    # get password
+    pw = getpass.getpass()
+
+    # The URL we are connnecting to
+    connStr = ''+user+'/' + pw +'@gwynne.cs.ualberta.ca:1521/CRS'
+
+    # Open and read the file as a single buffer
+    fd = open(filename, 'r')
+    sqlFile = fd.read()
+    fd.close()
+
+    # all SQL commands (split on ';')
+    sqlCommands = sqlFile.split(';')
 
     try:
+        # Make the connection 
         connection = cx_Oracle.connect(connStr)
         curs = connection.cursor()
-        curs.execute(createStr)                   
-        data = [('Quadbury', 101, 7.99, 0, 0),
-                    ('Almond roca', 102, 8.99, 0, 0),
-                    ('Golden Key', 103, 3.99, 0, 0)]
+
+        #Execute each command 
+        # This will skip and report errors
+        # For example, if the tables do not yet exist, this will skip over
+        # the DROP TABLE commands
+        for command in sqlCommands:
+            try:
+                curs.execute(command)
+            except OperationalError as  msg:
+                print("Command skipped: ", msg)
 
         cursInsert = connection.cursor()
-        cursInsert.bindarraysize = 3
-        cursInsert.setinputsizes(32, int, float, int, int)
-        cursInsert.executemany("INSERT INTO TOFFEES(T_NAME, SUP_ID, PRICE, SALES, TOTAL) "
-                    "VALUES (:1, :2, :3, :4, :5)", data)
         connection.commit()                      
 
-        curs.execute("SELECT * from TOFFEES")
         rows = curs.fetchall()
         for row in rows:
                     print(row)                      
@@ -34,8 +55,12 @@ def createTable():
         print( sys.stderr, "Oracle code:", error.code)
         print( sys.stderr, "Oracle message:", error.message) 
 
+       # Execute every command from the input file
+    print("Success!") 
+
+
 def main():
-    createTable()                     
+    executeScriptsFromFile('../res/prj_tables.sql')                     
 
 if __name__ == "__main__":
     main()
