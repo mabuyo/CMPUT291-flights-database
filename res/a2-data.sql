@@ -147,3 +147,11 @@ insert into bookings values (004,'AC028','Y',to_date('23-Oct-2015','DD-Mon-YYYY'
 insert into bookings values (005,'AC013','F',to_date('22-Dec-2015','DD-Mon-YYYY'),'20A');
 insert into bookings values (006,'AC020','Y',to_date('22-Dec-2015','DD-Mon-YYYY'),'20B');
 insert into bookings values (007,'AC014','J',to_date('22-Dec-2015','DD-Mon-YYYY'),'10B');
+
+insert into users values ('mabuyo@ualberta.ca', '1111', to_date('21-Oct-2015','DD-Mon-YYYY'));
+insert into users values ('svidal@ualberta.ca', '2222', to_date('21-Oct-2015','DD-Mon-YYYY'));
+insert into users values ('aeappen@ualberta.ca', '3333', to_date('21-Oct-2015','DD-Mon-YYYY'));
+
+insert into airline_agents values ('mabuyo@ualberta.ca', 'Michelle Mabuyo');
+insert into airline_agents values ('svidal@ualberta.ca', 'Kirsten Svidal');
+insert into airline_agents values ('aeappen@ualberta.ca', 'Anju Eappen');

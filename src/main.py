@@ -9,17 +9,6 @@ import register
 
 def executeScriptsFromFile(create_file, populate_file, connection):
 
-    # get username
-    user = input("Username [%s]: " % getpass.getuser())
-    if not user:
-        user=getpass.getuser()
-
-    # get password
-    pw = getpass.getpass()
-
-    # The URL we are connnecting to
-    connStr = ''+user+'/' + pw +'@gwynne.cs.ualberta.ca:1521/CRS'
-
     # Open and read the file as a single buffer
     fd1 = open(create_file, 'r')
     fd2 = open(populate_file, 'r')
@@ -45,15 +34,11 @@ def executeScriptsFromFile(create_file, populate_file, connection):
                 try:
                     curs.execute(command)
                 except cx_Oracle.DatabaseError as exc:
-                    print('***'+ command)
                     print("Command skipped: ", exc)
 
         connection.commit()                      
 
-        rows = curs.execute('SELECT * FROM tickets')
-        for row in rows:
-            print(row)                      
-
+        # example: rows = curs.execute('SELECT * FROM tickets')
         curs.close()
         connection.close()
     except OperationalError as  msg:
@@ -61,7 +46,7 @@ def executeScriptsFromFile(create_file, populate_file, connection):
         print( sys.stderr, "Oracle code:", error.code)
         print( sys.stderr, "Oracle message:", error.message) 
 
-    print("Success!") 
+    print("Tables created and data successfully loaded.") 
 
 def startConnection():
     """
