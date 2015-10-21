@@ -7,14 +7,30 @@ from sqlite3 import OperationalError
 import login
 import register
 
-def executeScriptsFromFile(filename, connection):
+def executeScriptsFromFile(create_file, populate_file, connection):
+
+    # get username
+    user = input("Username [%s]: " % getpass.getuser())
+    if not user:
+        user=getpass.getuser()
+
+    # get password
+    pw = getpass.getpass()
+
+    # The URL we are connnecting to
+    connStr = ''+user+'/' + pw +'@gwynne.cs.ualberta.ca:1521/CRS'
+
     # Open and read the file as a single buffer
-    fd = open(filename, 'r')
-    sqlFile = fd.read()
-    fd.close()
+    fd1 = open(create_file, 'r')
+    fd2 = open(populate_file, 'r')
+    createFile1 = fd1.read()
+    createFile2 = fd2.read()
+    fd1.close()
+    fd2.close()
 
     # all SQL commands (split on ';')
-    sqlCommands = sqlFile.split(';')
+    createCommands = createFile1.split(';')
+    populateCommands = createFile2.split(';')
 
     # initialize cursor
     curs = connection.cursor()
@@ -24,29 +40,27 @@ def executeScriptsFromFile(filename, connection):
         # This will skip and report errors
         # For example, if the tables do not yet exist, this will skip over
         # the DROP TABLE commands
-        for command in sqlCommands:
-            try:
-                curs.execute(command)
-            except OperationalError as  msg:
-                print("Command skipped: ", msg)
+        for command in createCommands + populateCommands:
+            if command not in ['', '\n']:
+                try:
+                    curs.execute(command)
+                except cx_Oracle.DatabaseError as exc:
+                    print('***'+ command)
+                    print("Command skipped: ", exc)
 
-        cursInsert = connection.cursor()
         connection.commit()                      
 
-        rows = curs.fetchall()
+        rows = curs.execute('SELECT * FROM tickets')
         for row in rows:
             print(row)                      
 
         curs.close()
-        cursInsert.close()
         connection.close()
-
-    except cx_Oracle.DatabaseError as exc:
+    except OperationalError as  msg:
         error, = exc.args
         print( sys.stderr, "Oracle code:", error.code)
         print( sys.stderr, "Oracle message:", error.message) 
 
-       # Execute every command from the input file
     print("Success!") 
 
 def startConnection():
@@ -91,9 +105,8 @@ def showMainMenu(connection):
 def main():
     connection = startConnection()
     # TODO: take this out before submitting!!! this is solely for testing purposes
-    executeScriptsFromFile('../res/prj_tables.sql', connection) 
+    executeScriptsFromFile('../res/prj_tables.sql', '../res/a2-data.sql', connection)                     
     showMainMenu(connection)
-
 
 if __name__ == "__main__":
     main()
