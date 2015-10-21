@@ -5,6 +5,7 @@ from sqlite3 import OperationalError
 
 # project packages
 import login
+import register
 
 def executeScriptsFromFile(filename, connection):
     # Open and read the file as a single buffer
@@ -49,9 +50,9 @@ def executeScriptsFromFile(filename, connection):
     print("Success!") 
 
 def startConnection():
-	"""
-	Returns a the connection to the database.
-	"""
+    """
+    Returns a the connection to the database.
+    """
     # get username
     user = input("Username [%s]: " % getpass.getuser())
     if not user:
@@ -74,22 +75,25 @@ def startConnection():
 
     return connection
 
-def main():
-    connection = startConnection()
-	# TODO: take this out before submitting!!! this is solely for testing purposes
-    executeScriptsFromFile('../res/prj_tables.sql', connection)  
-
+def showMainMenu(connection):
     # main screen, ask to login, register or exit
     while True:
         userStart = input("Login, Register or Exit? ")
 
         if (userStart == "login" or userStart == 'L'): 
-            login.handleLogin()
+            login.handleLogin(connection)
         elif (userStart == "register" or userStart == 'R'): 
-            register.handleRegister()
+            register.handleRegister(connection)
         elif (userStart == "exit" or userStart == 'E'):
             sys.exit("You have logged out of the program.")
         else: print ("Please select one of the options. \n")
+
+def main():
+    connection = startConnection()
+    # TODO: take this out before submitting!!! this is solely for testing purposes
+    executeScriptsFromFile('../res/prj_tables.sql', connection) 
+    showMainMenu(connection)
+
 
 if __name__ == "__main__":
     main()
