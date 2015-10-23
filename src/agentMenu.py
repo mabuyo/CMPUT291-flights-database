@@ -17,8 +17,38 @@ class AgentMenu(userMenu.UserMenu):
                 self.promptForBooking()
             elif (userInput == "RD"):
                 print("Recording flight departure")
+                (fno, date) = self.findFlight()
+                update = self.promptUpdate()
+                self.recordDep(fno, date, update)
             elif (userInput == "RA"):
                 print("Recording flight arrival")
             elif (userInput == "L"):
                 main.showMainMenu()
             else: print("Pick a valid option. \n")
+
+    def findFlight(self):
+        while True:
+            flight = input("Enter the flight number and departure date (DD-MON-YYYY), separated using a space. (R) to return.  ")
+            if flight == 'R': self.showMenu()
+            fno = flight.split(" ")[0]
+            date = flight.split(" ")[1]
+            return (fno, date)
+
+    def promptUpdate(self):
+        while True:
+            date = input("Record the actual departure time (DD-MON-YYY, HH:MI)")
+            if date == 'R': self.showMenu()
+            return date
+
+    def recordDep(self, fno, date, update):
+        # UPDATE sch_flights SET act_dep_time = TO_DATE(update, 'DD-MON-YYYY, HH:MI') WHERE flightno = input AND dep_date = TO_DATE(date,'DD-MON-YYYY')
+        record = "UPDATE sch_flights SET act_dep_time = TO_DATE('" + update + "', 'DD-MON-YYYY, hh24:mi') WHERE (flightno = '" + fno +  "' AND dep_date = TO_DATE('" + date + "', 'DD-MON-YYYY'))"
+        db = main.getDatabase()
+        db.execute(record)
+        db.execute("commit")
+        print("Successfully recorded actual departure time.")
+        self.showMenu()
+
+
+    def recordArr(self):
+        pass

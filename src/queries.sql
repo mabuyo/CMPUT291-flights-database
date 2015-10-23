@@ -63,10 +63,9 @@ UPDATE users SET last_login = '' WHERE email = 'mabuyo@ualberta.ca'
 -- check if user login is valid
 SELECT email from users where email = 'mabuyo@ualberta.ca' AND pass = '1111';
 
-
-
-
-
-
+-- record the departure time in act_dep_time if airline agent
+UPDATE sch_flights SET act_dep_time = TO_DATE(update, 'DD-MON-YYYY, HH:MI') WHERE flightno = input AND dep_date = TO_DATE(date,'DD-MON-YYYY')
+-- UPDATE sch_flights SET act_dep_time = TO_DATE('22-Sep-2015, 08:00', 'DD-MON-YYYY, HH:MI') WHERE flightno = 'AC154' AND dep_date = TO_DATE('22-Sep-2015','DD-MON-YYYY')
+'AC154',to_date('22-Sep-2015','DD-Mon-YYYY'),to_date('15:50', 'hh24:mi'),to_date('21:30','hh24:mi')
 
 
