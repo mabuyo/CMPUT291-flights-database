@@ -16,12 +16,15 @@ class AgentMenu(userMenu.UserMenu):
                 self.showExistingBookings()
                 self.promptForBooking()
             elif (userInput == "RD"):
-                print("Recording flight departure")
+                print("Recording flight departure.\n")
                 (fno, date) = self.findFlight()
                 update = self.promptUpdate()
                 self.recordDep(fno, date, update)
             elif (userInput == "RA"):
-                print("Recording flight arrival")
+                print("Recording flight arrival. \n")
+                (fno, date) = self.findFlight()
+                update = self.promptUpdate()
+                self.recordArr(fno, date, update)
             elif (userInput == "L"):
                 main.showMainMenu()
             else: print("Pick a valid option. \n")
@@ -50,5 +53,10 @@ class AgentMenu(userMenu.UserMenu):
         self.showMenu()
 
 
-    def recordArr(self):
-        pass
+    def recordArr(self, fno, date, update):
+        record = "UPDATE sch_flights SET act_arr_time = TO_DATE('" + update + "', 'DD-MON-YYYY, hh24:mi') WHERE (flightno = '" + fno +  "' AND dep_date = TO_DATE('" + date + "', 'DD-MON-YYYY'))"
+        db = main.getDatabase()
+        db.execute(record)
+        db.execute("commit")
+        print("Successfully recorded actual arrival time.")
+        self.showMenu()
