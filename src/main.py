@@ -81,7 +81,7 @@ def showMainMenu():
 
 def main():
     # TODO: take this out before submitting!!! this is solely for testing purposes
-    executeScriptsFromFile('../res/prj_tables.sql', '../res/a2-data.sql')                     
+    #executeScriptsFromFile('../res/prj_tables.sql', '../res/a2-data.sql')                     
     showMainMenu()
 
 def getDatabase():
