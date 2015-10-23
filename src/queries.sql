@@ -36,7 +36,7 @@ FROM users u, passengers p, tickets t, bookings b
 WHERE u.email = p.email AND 
 	p.email = t.email AND
 	t.tno = b.tno AND
-	u.email = 'mabuyo@ualberta.ca';
+	u.email = 'test@gmail.com';
 -- TODO: u.email will be replaced with the string for email of current user
 
 -- see details for a booking

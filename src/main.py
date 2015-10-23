@@ -59,6 +59,8 @@ def getDatabaseDetails():
 
     # get password
     pw = getpass.getpass()
+    if not pw:
+        pw = 'databases291'
 
     # The URL we are connnecting to
     connStr = ''+user+'/' + pw +'@gwynne.cs.ualberta.ca:1521/CRS'
