@@ -6,6 +6,9 @@ class UserMenu(object):
         self.bookings = []
 
     def showMenu(self):
+        """
+        This shows the user menu for searching flights, listing existing bookings or logging out.
+        """
         while True:
             userInput = input("Search for flights (S) or List existing bookings (B), Logout (L)?  ")
             if (userInput == "S"):
@@ -18,11 +21,17 @@ class UserMenu(object):
             else: print("Pick a valid option. \n")
 
     def searchForFlights(self):
+        """
+        This menu is for searching for flights.
+        """
         while True:
             flightParameters = input("Enter the source, destination and departure date (DD-MON-YYYY), separated by spaces.\n")
         pass
 
     def showExistingBookings(self):
+        """
+        This shows the user's existing bookings.
+        """
         searchBookings = "SELECT t.tno, p.name, TO_CHAR(b.dep_date, 'DD-MON-YYYY') as dep_date , t.paid_price FROM users u, passengers p, tickets t, bookings b WHERE u.email = p.email AND p.email = t.email AND t.tno = b.tno AND u.email = '" + self.email + "'"
         db = main.getDatabase()
         db.execute(searchBookings)
@@ -37,6 +46,9 @@ class UserMenu(object):
             print (str(result[0]) + "    " + result[1] + "   " + str(result[2]) + "   " + str(result[3]) + "\n")
 
     def promptForBooking(self):
+        """
+        This prompts the user to enter a ticket number out of the existing bookings or return to the previous menu.
+        """
         while True:
             ticket_no = input("Enter your ticket number for more details about that booking. R to return to previous menu. \n")
             if ticket_no == "R": self.showMenu()
@@ -50,8 +62,11 @@ class UserMenu(object):
             else: print("Please enter a valid ticket number. ")
 
     def detailedBooking(self, tno):
+        """
+        The details of the booking have been shown, the user can cancel the booking or return to their list of existing bookings. 
+        """
         while True:
-            action = input("Cancel this booking (C) or Return to previous menu (R)")
+            action = input("Cancel this booking (C) or Return to list of existing bookings (R): ")
             if action == "C": 
                 self.cancelBooking(tno)
             elif action == "R":

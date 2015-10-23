@@ -2,8 +2,8 @@ import userMenu
 import main
 
 class AgentMenu(userMenu.UserMenu):
-    def __init__(self):
-        super() 
+    def __init__(self, email):
+        super().__init__(email)
 
     def showMenu(self):
         # user menu plus more
@@ -11,9 +11,10 @@ class AgentMenu(userMenu.UserMenu):
         while True:
             userInput = input("Search for flights (S), List existing bookings (B), Record a flight departure (RD), Record a flight arrival (RA), Logout(L)?  ")
             if (userInput == "S"):
-                print("Searching for flights")
+                self.searchForFlights()
             elif (userInput == "B"):
-                print("Listing")
+                self.showExistingBookings()
+                self.promptForBooking()
             elif (userInput == "RD"):
                 print("Recording flight departure")
             elif (userInput == "RA"):
@@ -21,8 +22,3 @@ class AgentMenu(userMenu.UserMenu):
             elif (userInput == "L"):
                 main.showMainMenu()
             else: print("Pick a valid option. \n")
-
-        # record a flight arrival
-        
-
-
