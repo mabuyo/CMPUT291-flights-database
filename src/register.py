@@ -12,5 +12,18 @@ def handleRegister(connection):
     # check table:users if user already exists
     #print(user_email + " " + user_pw)
 
-    # if not, add to table:users with user name and password provided
-    
+    # queries
+    checkIfUserExists = "SELECT email FROM users WHERE email = '" + user_email + "' AND pass = '" + user_pw + "'"
+    addToUsers = "INSERT INTO users VALUES('" + user_email + "', '" + user_pw + "', SYSDATE)"
+    commit = "commit"
+
+    # check if user exists
+    db = main.getDatabase()
+    db.execute(checkIfUserExists)
+    user_results = db.cursor.fetchall()
+    if len(user_results) > 0: # user exists!
+    	print("User already exists. Please log in.")
+    	main.showMainMenu()
+    else: 
+        db.execute(addToUsers)
+        db.execute(commit)   

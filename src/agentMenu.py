@@ -2,7 +2,7 @@ import userMenu
 import main
 
 class AgentMenu(userMenu.UserMenu):
-    def __init__(self, connection):
+    def __init__(self):
         super() 
 
     def showMenu(self):
@@ -19,7 +19,7 @@ class AgentMenu(userMenu.UserMenu):
             elif (userInput == "RA"):
                 print("Recording flight arrival")
             elif (userInput == "L"):
-                main.showMainMenu(self.connection)
+                main.showMainMenu()
             else: print("Pick a valid option. \n")
 
         # record a flight arrival

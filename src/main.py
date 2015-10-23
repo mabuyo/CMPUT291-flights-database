@@ -6,9 +6,9 @@ from sqlite3 import OperationalError
 # project packages
 import login
 import register
+import database
 
-def executeScriptsFromFile(create_file, populate_file, connection):
-
+def executeScriptsFromFile(create_file, populate_file):
     # Open and read the file as a single buffer
     fd1 = open(create_file, 'r')
     fd2 = open(populate_file, 'r')
@@ -22,7 +22,7 @@ def executeScriptsFromFile(create_file, populate_file, connection):
     populateCommands = createFile2.split(';')
 
     # initialize cursor
-    curs = connection.cursor()
+    curs = db.cursor
 
     try:
         #Execute each command 
@@ -36,11 +36,11 @@ def executeScriptsFromFile(create_file, populate_file, connection):
                 except cx_Oracle.DatabaseError as exc:
                     print("Command skipped: ", exc)
 
-        connection.commit()                      
+        db.connection.commit()                      
 
         # example: rows = curs.execute('SELECT * FROM tickets')
         curs.close()
-        connection.close()
+        db.connection.close()
     except OperationalError as  msg:
         error, = exc.args
         print( sys.stderr, "Oracle code:", error.code)
@@ -48,9 +48,9 @@ def executeScriptsFromFile(create_file, populate_file, connection):
 
     print("Tables created and data successfully loaded.") 
 
-def startConnection():
+def getDatabaseDetails():
     """
-    Returns a the connection to the database.
+    Prompts user for SQL username and password to establish connection with the database.
     """
     # get username
     user = input("Username [%s]: " % getpass.getuser())
@@ -63,35 +63,33 @@ def startConnection():
     # The URL we are connnecting to
     connStr = ''+user+'/' + pw +'@gwynne.cs.ualberta.ca:1521/CRS'
 
-    try: 
-        # Make the connection 
-        connection = cx_Oracle.connect(connStr)
+    return connStr
 
-    except cx_Oracle.DatabaseError as exc:
-        error = exc.args
-        print( sys.stderr, "Oracle code:", error.code)
-        print( sys.stderr, "Oracle message:", error.message)
-
-    return connection
-
-def showMainMenu(connection):
+def showMainMenu():
     # main screen, ask to login, register or exit
     while True:
         userStart = input("Login, Register or Exit? ")
 
         if (userStart == "login" or userStart == 'L'): 
-            login.handleLogin(connection)
+            login.handleLogin()
         elif (userStart == "register" or userStart == 'R'): 
-            register.handleRegister(connection)
+            register.handleRegister()
         elif (userStart == "exit" or userStart == 'E'):
             sys.exit("You have logged out of the program.")
         else: print ("Please select one of the options. \n")
 
+
 def main():
-    connection = startConnection()
     # TODO: take this out before submitting!!! this is solely for testing purposes
-    executeScriptsFromFile('../res/prj_tables.sql', '../res/a2-data.sql', connection)                     
-    showMainMenu(connection)
+    executeScriptsFromFile('../res/prj_tables.sql', '../res/a2-data.sql')                     
+    showMainMenu()
+
+def getDatabase():
+    return db
+
+# database connection will be global    
+db_input = getDatabaseDetails()
+db = database.Database(db_input)
 
 if __name__ == "__main__":
     main()

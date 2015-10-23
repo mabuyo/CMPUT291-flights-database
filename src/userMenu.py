@@ -1,8 +1,8 @@
 import main
 
 class UserMenu(object):
-    def __init__(self, connection):
-        self.connection = connection
+    def __init__(self, email):
+        self.email = email
 
     def showMenu(self):
         while True:
@@ -12,7 +12,7 @@ class UserMenu(object):
             elif (userInput == "B"):
                 print("Listing")
             elif (userInput == "L"):
-                main.showMainMenu(self.connection)
+                main.showMainMenu()
             else: print("Pick a valid option. \n")
 
     def searchForFlights():

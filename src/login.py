@@ -5,21 +5,29 @@ From the specification: Registered users should be able to login using a valid e
 
 import getpass 
 import menuHandler
+import main
 
-def handleLogin(connection):
+def handleLogin():
     # ask for email and password
     user_email = input("Email: ")
     user_pw = getpass.getpass()
 
     # check table if user exists
     #print(user_email + " " + user_pw)
+    checkIfUserExists = "SELECT email FROM users WHERE email = '" + user_email + "' AND pass = '" + user_pw + "'"
+    checkIfAgent = "SELECT email FROM airline_agents WHERE email = '" + user_email + "'"
 
-    # if not, print error message and go back
-
-    # if yes, check if airline agent
-
-    # if airline agent, go to airline agent menu
-    menuHandler.handleAgentMenu(connection)
-
-    # if normal user, go to normal user menu
-    menuHandler.handleUserMenu(connection)
+    # check if user exists
+    db = main.getDatabase()
+    db.execute(checkIfUserExists)
+    user_results = db.cursor.fetchall()
+    for x in user_results: print(x)
+    if len(user_results) > 0: # user exists!
+        db.execute(checkIfAgent)
+        agent_results = db.cursor.fetchall()
+        if len(agent_results) > 0:
+            menuHandler.handleAgentMenu(user_email)
+        else: menuHandler.handleUserMenu(user_email)
+    else: 
+        print("User does not exist.")
+        main.showMainMenu()

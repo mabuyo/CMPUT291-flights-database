@@ -1,13 +1,12 @@
 import userMenu
 import agentMenu
+import main
 
-def handleUserMenu(connection):
-    menu = userMenu.UserMenu(connection)
+def handleUserMenu(email):
+    menu = userMenu.UserMenu(email)
     menu.showMenu()
 
-    pass
 
-
-def handleAgentMenu(connection):
-    #menu = agentMenu.AgentMenu(connection)
-    pass
+def handleAgentMenu(email):
+    menu = agentMenu.AgentMenu(email)
+    menu.showMenu()
