@@ -161,12 +161,17 @@ insert into airline_agents values ('aeappen@ualberta.ca', 'Anju Eappen');
 insert into passengers values ('mabuyo@ualberta.ca','Michelle Mabuyo','Canada');
 insert into passengers values ('svidal@ualberta.ca','Kirsten Svidal','Canada');
 insert into passengers values ('aeappen@ualberta.ca','Anju Eappen','Canada');
+insert into passengers values ('test@gmail.com','Test Person','US');
 
 insert into tickets values (008, 'Michelle Mabuyo', 'mabuyo@ualberta.ca',700);
 insert into tickets values (009, 'Kirsten Svidal', 'svidal@ualberta.ca',200);
 insert into tickets values (010, 'Anju Eappen', 'aeappen@ualberta.ca',200);
+insert into tickets values (011, 'Test Person', 'test@gmail.com', 200);
+insert into tickets values (012, 'Test Person', 'test@gmail.com', 700);
 
 insert into bookings values (008,'AC154','Y',to_date('22-Dec-2015','DD-Mon-YYYY'),'20B');
 insert into bookings values (009,'AC027','F',to_date('23-Oct-2015','DD-Mon-YYYY'),'10B');
 insert into bookings values (010,'AC027','J',to_date('23-Oct-2015','DD-Mon-YYYY'),'10A');
+insert into bookings values (011,'AC154','Y',to_date('22-Dec-2015','DD-Mon-YYYY'),'12C');
+insert into bookings values (012,'AC027','F',to_date('23-Oct-2015','DD-Mon-YYYY'),'12E');
 
