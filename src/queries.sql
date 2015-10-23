@@ -3,7 +3,30 @@
 -- good_connections view returns: src, dst, dep_date, flightno1, flightno2, layover, and price
 -- flight_results: flight number, source and destination airport codes, departure and arrival times, the number of stops, the layover time for non-direct flights, the price, and the number of seats at that price. 
 -- sort based on price, highest to lowest
+-- FROM ASGN2
+SELECT flightno1, flightno2, layover, price 
+  from (
+  SELECT flightno1, flightno2, layover, price, row_number() over (order by price asc) rn 
+  from 
+  (SELECT flightno1, flightno2, layover, price
+  from good_connections
+  where to_char(dep_date,'DD/MM/YYYY')='22/12/2015' and src='YEG' and dst='LAX'
+  union
+  SELECT flightno flightno1, '' flightno2, 0 layover, price
+  from available_flights
+  where to_char(dep_date,'DD/MM/YYYY')='22/12/2015' and src='YEG' and dst='LAX'))
+  where rn <=5; -- get rid of this top 5
 
+-- FROM ASSGN2
+  create view good_connections (src,dst,dep_date,flightno1,flightno2, layover,price) as
+  select a1.src, a2.dst, a1.dep_date, a1.flightno, a2.flightno, a2.dep_time-a1.arr_time,
+	min(a1.price+a2.price)
+  from available_flights a1, available_flights a2
+  where a1.dst=a2.src and a1.arr_time +1.5/24 <=a2.dep_time and a1.arr_time +5/24 >=a2.dep_time
+  group by a1.src, a2.dst, a1.dep_date, a1.flightno, a2.flightno, a2.dep_time, a1.arr_time;
+
+  select src, dst, dep_date, flightno1, flightno2, layover/24, price
+  from good_connections;
 
 
 -- MAKE A BOOKING
