@@ -33,9 +33,15 @@ class AgentMenu(userMenu.UserMenu):
         while True:
             flight = input("Enter the flight number and departure date (DD-MON-YYYY), separated using a space. (R) to return.  ")
             if flight == 'R': self.showMenu()
-            fno = flight.split(" ")[0]
-            date = flight.split(" ")[1]
-            return (fno, date)
+            (fno, date) = flight.split(" ")
+
+            # check if flight exists
+            checkValidFlight = "SELECT * FROM sch_flights WHERE flightno = '" + fno + "' AND dep_date = TO_DATE('" + date + "', 'DD-MON-YYYY')"
+            db = main.getDatabase()
+            db.execute(checkValidFlight)
+            found = db.cursor.fetchall()
+            if len(found) > 0: return (fno, date)
+            else: print("\nNo flights found, try again.\n")
 
     def promptUpdate(self):
         while True:

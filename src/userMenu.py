@@ -28,6 +28,7 @@ class UserMenu(object):
         while True:
             flightParameters = input("Enter the source, destination and departure date (DD-MON-YYYY), separated by spaces. (R) for returning to previous menu.\n")
             if flightParameters == "R": self.showMenu()
+            (src, dst, dep) = flightParameters.split(" ")
             else: print("To be implemented......\n")
 
     def showExistingBookings(self):
