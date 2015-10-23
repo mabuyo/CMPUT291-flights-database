@@ -13,7 +13,7 @@ def handleRegister():
     user_pw = getpass.getpass()
 
     # queries
-    checkIfUserExists = "SELECT email FROM users WHERE email = '" + user_email + "' AND pass = '" + user_pw + "'"
+    checkIfUserExists = "SELECT email FROM users WHERE email = '" + user_email + "'"
     addToUsers = "INSERT INTO users VALUES('" + user_email + "', '" + user_pw + "', SYSDATE)"
     commit = "commit"
 

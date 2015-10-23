@@ -17,6 +17,7 @@ class UserMenu(object):
                 self.showExistingBookings()
                 self.promptForBooking()
             elif (userInput == "L"):
+                self.setLastLogin()
                 main.showMainMenu()
             else: print("Pick a valid option. \n")
 
@@ -25,8 +26,9 @@ class UserMenu(object):
         This menu is for searching for flights.
         """
         while True:
-            flightParameters = input("Enter the source, destination and departure date (DD-MON-YYYY), separated by spaces.\n")
-        pass
+            flightParameters = input("Enter the source, destination and departure date (DD-MON-YYYY), separated by spaces. (R) for returning to previous menu.\n")
+            if flightParameters == "R": self.showMenu()
+            else: print("To be implemented......\n")
 
     def showExistingBookings(self):
         """
@@ -86,5 +88,13 @@ class UserMenu(object):
         db.execute("commit")
         print("Booking successfully cancelled. Returning to main menu.\n")
         self.showMenu()
+
+    def setLastLogin(self):
+        logout = "UPDATE users SET last_login = SYSDATE " + "WHERE email = '" + self.email + "'"
+        db = main.getDatabase()
+        db.execute(logout)
+        db.execute("commit")
+        print("Successfully logged out.\n")
+
 
 
