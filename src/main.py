@@ -7,6 +7,7 @@ from sqlite3 import OperationalError
 import login
 import register
 import database
+import queries2
 
 def executeScriptsFromFile(create_file, populate_file):
     # Open and read the file as a single buffer
@@ -83,7 +84,7 @@ def showMainMenu():
 
 def main():
     # TODO: take this out before submitting!!! this is solely for testing purposes
-    #executeScriptsFromFile('../res/prj_tables.sql', '../res/a2-data.sql')                     
+    executeScriptsFromFile('../res/prj_tables.sql', '../res/a2-data.sql')                     
     showMainMenu()
 
 def getDatabase():
