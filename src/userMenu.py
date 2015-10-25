@@ -35,8 +35,8 @@ class UserMenu(object):
             elif (userInput == "test"):
                 #self.makeABooking(<flight details from flight results>)
                 #insert into sch_flights values ('AC1525',to_date('06-Jul-2015','DD-Mon-YYYY'),to_date('19:35', 'hh24:mi'),to_date('23:27', 'hh24:mi'));
-                print(self.findFare('AC1525', '189'))
-                #self.makeABooking(('AC1525', 'TWF','TSS', '06-Jul-2015', '19:35', 0, 0, '189', 12 ))
+                #(flight number, source, destination, departure time, arrival time, the number of stops, the layover time, the price, and the number of seats at that price, fare:notprinted, dep_date)
+                self.makeABooking(('AC1525', 'TWF','TSS', '19:35', '23:27', 0, 0, '189', 12, 'X', '06-Jul-2015'))
             else: print("Pick a valid option. \n")
 
     def searchForFlights(self):
@@ -115,11 +115,11 @@ class UserMenu(object):
             else: print("Please enter a valid input. ")
 
     def makeABooking(self, flightDetails):
-        #flightDetails = (flight number, source, destination, departure, arrival time, the number of stops, the layover time, the price, and the number of seats at that price.)
+        #flightDetails = (flight number, source, destination, departure time, arrival time, the number of stops, the layover time, the price, and the number of seats at that price, fare:notprinted, dep_date)
         flightno = flightDetails[0]
-        dep_date = flightDetails[3]
+        dep_date = flightDetails[10]
         price = flightDetails[7]
-        fare = 'X' #this will be in flightDetails
+        fare = flightDetails[9]
         seat = self.generateSeatNumber()
 
         # get name of user, check if in passengers table
@@ -128,8 +128,7 @@ class UserMenu(object):
         db.execute(checkIfPassenger)
         isPassenger = db.cursor.fetchall()
 
-        #db.close()
-        if len(isPassenger) < 0:
+        if len(isPassenger) < 0:    # not in passengers table 
             # ask for name and country
             (name, country) = self.promptForNameAndCountry()
 
@@ -153,7 +152,7 @@ class UserMenu(object):
                 self.showMenu()
             else: 
                 insertTicket = "INSERT INTO tickets VALUES('" + tno + "', '" + name + "', '" + self.email + "', '" + price + "')"
-                insertBooking = "INSERT INTO bookings VALUES('" + tno + "', '" + flightno + "', '" + fare + "', to_date('" + dep_date + "', 'hh24:mi'), '" + seat + "')"
+                insertBooking = "INSERT INTO bookings VALUES('" + tno + "', '" + flightno + "', '" + fare + "', to_date('" + dep_date + "', 'DD-Mon-YYYY'), '" + seat + "')"
                 db.execute(insertTicket)
                 db.execute("commit")  
                 db.execute(insertBooking)
@@ -174,11 +173,16 @@ class UserMenu(object):
     def generateSeatNumber(self):
         alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
         assignedSeats = main.getAssignedSeats()
+        letterIndex = randint(1, 26)
+        letter = alphabet[letterIndex+1]
+        num = randint(1,9)
+        seat = letter + str(num)
         while (seat in assignedSeats):
             letterIndex = randint(1, 26)
             letter = alphabet[letterIndex+1]
             num = randint(1,9)
             seat = letter + str(num)
+        return seat
 
     def cancelBooking(self, tno):
         dBook = "DELETE FROM bookings WHERE tno = " + tno;
