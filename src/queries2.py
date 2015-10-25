@@ -1,5 +1,8 @@
 import main
 
+TRIP_QUERY = ""
+
+
 def getMatchingAirports(userInput):
 
     airport_query = "SELECT *  FROM airports WHERE name LIKE '%" + userInput + "%'" + " OR city LIKE '%" + userInput + "%'"  
@@ -11,4 +14,5 @@ def getMatchingAirports(userInput):
     for airport in airport_info: 
         print(airport) 
 
+def searchFlights(src, dst, 
 
