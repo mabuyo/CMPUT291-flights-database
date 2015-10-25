@@ -15107,7 +15107,18 @@ insert into passengers values ('GraigRidgeway@e.ca','Graig Ridgeway','Mexico');
 insert into passengers values ('ChristianaBal@e.ca','Christiana Ballan','Canada');
 insert into passengers values ('CodiKetner@e.ca','Codi Ketner','Mexico');
 insert into passengers values ('VioletaYounan@e.ca','Violeta Younan','USA');
+--OUR DATA 
+insert into passengers values ('mabuyo@ualberta.ca','Michelle Mabuyo','Canada');
+insert into passengers values ('svidal@ualberta.ca','Kirsten Svidal','Canada');
+insert into passengers values ('aeappen@ualberta.ca','Anju Eappen','Canada');
+insert into passengers values ('test@gmail.com','Test Person','US');
 
+
+insert into tickets values (008, 'Michelle Mabuyo', 'mabuyo@ualberta.ca',700);
+insert into tickets values (009, 'Kirsten Svidal', 'svidal@ualberta.ca',200);
+insert into tickets values (010, 'Anju Eappen', 'aeappen@ualberta.ca',200);
+insert into tickets values (011, 'Test Person', 'test@gmail.com', 200);
+insert into tickets values (012, 'Test Person', 'test@gmail.com', 700);
 
 insert into tickets values ('100', 'Lavon Hilyard', 'LavonHilyard@e.ca', '159');
 insert into tickets values ('103', 'Shantae Poppe', 'ShantaePoppe@e.ca', '129');
@@ -36253,6 +36264,16 @@ insert into bookings values ('3920','WJ776','T',to_date('22-Dec-2015','DD-Mon-YY
 insert into bookings values ('4006','WJ776','T',to_date('22-Dec-2015','DD-Mon-YYYY'),'5F');
 insert into bookings values ('4029','WJ776','T',to_date('22-Dec-2015','DD-Mon-YYYY'),'6F');
 
+--OUR DATA Again
+
+insert into users values ('mabuyo@ualberta.ca', '1111', to_date('21-Oct-2015','DD-Mon-YYYY'));
+insert into users values ('svidal@ualberta.ca', '2222', to_date('21-Oct-2015','DD-Mon-YYYY'));
+insert into users values ('aeappen@ualberta.ca', '3333', to_date('21-Oct-2015','DD-Mon-YYYY'));
+insert into users values ('test@gmail.com', 'aaaa', to_date('21-Oct-2015','DD-Mon-YYYY'));
+
+insert into airline_agents values ('mabuyo@ualberta.ca', 'Michelle Mabuyo');
+insert into airline_agents values ('svidal@ualberta.ca', 'Kirsten Svidal');
+insert into airline_agents values ('aeappen@ualberta.ca', 'Anju Eappen');
 
 
 
