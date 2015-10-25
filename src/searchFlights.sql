@@ -12,12 +12,12 @@ group by f.flightno, sf.dep_date, f.src, f.dst, f.dep_time, f.est_dur,a2.tzone,
 having fa.limit-count(tno) > 0;
 
 
-select * from available_flights;
+--select * from available_flights;
 
 
 drop view good_connections;
 create view good_connections (src,dst,dep_date,flightno1,flightno2, layover,price, dep_time, arr_time, seats) as
-SELECT DISTINCT ff.src, ff.dst, ff.dep_date, ff.no1, ff.no2, ff.layover, ff.price, ff.dep_time, ff.arr_time , CASE WHEN a3.seats <= a4.seats then a3.seats else a4.seats end 
+SELECT DISTINCT ff.src, ff.dst, ff.dep_date, ff.no1, ff.no2, ff.layover, ff.price, ff.dep_time, ff.arr_time , least(a3.seats, a4.seats) 
 FROM
 (select a1.src, a2.dst, a1.dep_date, a1.flightno AS no1, a2.flightno AS no2, a2.dep_time-a1.arr_time as layover,
   min(a1.price+a2.price) AS price, a1.dep_time, a2.arr_time, a2.dep_date as date2 
@@ -43,3 +43,4 @@ union
 select flightno flightno1, '' flightno2, 0 layover, price
 from available_flights
 where to_char(dep_date,'DD/MM/YYYY')='22/12/2015' and src='YEG' and dst='LAX'));
+
