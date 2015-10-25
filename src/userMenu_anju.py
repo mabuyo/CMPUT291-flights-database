@@ -1,5 +1,6 @@
 import main
 import queries2 as q
+import util_methods as util
 
 class UserMenu(object):
     def __init__(self, email):
@@ -26,29 +27,30 @@ class UserMenu(object):
         """
         This menu is for searching for flights.
         """
-        while True:
-            src = input("Enter the source (Enter 'R' for previous menu): \n)
-            destination and departure date (DD-MON-YYYY), separated by spaces. (R) for returning to previous menu.\n")
-            if src== "R": self.showMenu()
-            else if : 
-                
-                print("")
+        acode_s, acode_d, date = "", "", ""
+        while acode_s == "" and acode_d == "" and date == "":
+            src = input("Enter the source airport ('R' for previous menu): ")
+            acode_s = self.getAcode(src) 
             
-    def getSrc():
-        src = input("Enter the source (Enter 'R' for previous menu): ")
-        if src== "R": self.showMenu()
-        else: 
-            print("Here are existing airports that matched your query: \n")
-            q.getMatchingAirports(src); 
-            acode = input("Please enter the 3 digit airport code for your selection: ")
-            if src== "R": self.getSrc()
-            
+            dst = input("Enter the destination airport ('R' for previous menu): ")
+            acode_d = self.getAcode(dst) 
 
-    def isValidAirportCode(uInput);
-        acode_query = ''
-        db = main.getDatabase()
-        db.execute(searchBookings)
+            date = input("Enter the date of travel in format DD/MM/YYYY ('R' for previous menu): ")
+            if not util.validate(date):
+                date = input("Try again ('R' for previous menu): ")
         
+        q.searchFlights(acode_s, acode_d, date)
+    
+        
+
+    def getAcode(self, airport):
+        if airport == "R": self.showMenu()
+        elif q.isValidAcode(airport):
+            return airport
+        else: 
+            q.getMatchingAirports(airport); 
+            acode = input("Please enter select a 3-letter airport code from the list and enter it here: ")
+            
 
     def showExistingBookings(self):
         """
