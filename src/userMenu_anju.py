@@ -23,21 +23,29 @@ class UserMenu(object):
                 main.showMainMenu()
             else: print("Pick a valid option. \n")
 
-    def searchForFlights(self):
+    def searchForFlights(self, acode_s=None, acode_d=None, date=None):
         """
         This menu is for searching for flights.
         """
-        acode_s, acode_d, date = "", "", ""
-        while acode_s == "" and acode_d == "" and date == "":
-            src = input("Enter the source airport ('R' for previous menu): ")
-            acode_s = self.getAcode(src) 
+        if not acode_s: acode_s = ""
+        if not acode_d: acode_d = ""
+        if not date: date = ""
+        while set([acode_s, acode_d, date]).intersection([""]):
+            if acode_s == "":
+                src = input("Enter the source airport ('R' for previous menu): ")
+                if src == 'R': self.showMenu()
+                acode_s = self.getAcode(src) 
             
-            dst = input("Enter the destination airport ('R' for previous menu): ")
-            acode_d = self.getAcode(dst) 
+            if acode_d == "":
+                dst = input("Enter the destination airport ('R' to re-enter src): ")
+                if dst == 'R': self.searchForFlights(acode_s=acode_s)
+                acode_d = self.getAcode(dst) 
 
-            date = input("Enter the date of travel in format DD/MM/YYYY ('R' for previous menu): ")
-            if not util.validate(date):
-                date = input("Try again ('R' for previous menu): ")
+            if date == "":
+                date = input("Enter the date of travel in format DD/MM/YYYY ('R' to re-enter dst): ")
+                if dst == 'R': self.searchForFlights(acode_s=acode_s, acode_d=acode_d)
+                if not util.validate(date):
+                    date = input("Try again ('R' for previous menu): ")
         
         q.searchFlights(acode_s, acode_d, date)
     

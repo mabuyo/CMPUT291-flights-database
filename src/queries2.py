@@ -14,11 +14,11 @@ def getMatchingAirports(userInput):
 
     airport_query = "SELECT *  FROM airports WHERE name LIKE '%{0}%' OR city LIKE '%{0}%'"  
     db = main.getDatabase()
-    db.execute(airport_query.format(userInput)) 
+    db.execute(airport_query.format(userInput.title())) 
     airport_info = db.cursor.fetchall()
     while not airport_info:
         userInput = input("No airports found. Please check search terms and try again: ")
-        db.execute(airport_query.format(userInput)) 
+        db.execute(airport_query.format(userInput.title())) 
         airport_info = db.cursor.fetchall()
     print("")
     print("Here are existing airports that matched your query: \n")
