@@ -64,6 +64,7 @@ class UserMenu(object):
                 db = main.getDatabase()
                 db.execute(showDetails)
                 details = db.cursor.fetchall()
+                db.close()
                 for d in details: print(d)  
                 self.detailedBooking(ticket_no)
             else: print("Please enter a valid ticket number. ")
@@ -106,6 +107,7 @@ class UserMenu(object):
         db.execute(dBook)
         db.execute(dTix)
         db.execute("commit")
+        db.close()
         print("Booking successfully cancelled. Returning to main menu.\n")
         self.showMenu()
 
@@ -114,6 +116,7 @@ class UserMenu(object):
         db = main.getDatabase()
         db.execute(logout)
         db.execute("commit")
+        db.close()
         print("Successfully logged out.\n")
 
     def getNameAndCountry(self):
