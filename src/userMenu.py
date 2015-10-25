@@ -1,6 +1,7 @@
 import main
 import queries2 as q
 import util_methods as util
+from random import randint
 
 class UserMenu(object):
     def __init__(self, email):
@@ -118,9 +119,8 @@ class UserMenu(object):
         flightno = flightDetails[0]
         dep_date = flightDetails[3]
         price = flightDetails[7]
-        # need to find fare
-        fare = self.findFare(flightno, price)
-        seat = '20B' #TODO: generate seat numbers... not sure how. emailed Kriti
+        fare = 'X' #this will be in flightDetails
+        seat = self.generateSeatNumber()
 
         # get name of user, check if in passengers table
         checkIfPassenger = "SELECT * FROM passengers WHERE email = '" + self.email + "'"
@@ -170,6 +170,15 @@ class UserMenu(object):
         maxTno = db.cursor.fetchall()
         if len(maxTno) < 0: return 1
         else: return int(maxTno[0][0]) + 1
+
+    def generateSeatNumber(self):
+        alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+        assignedSeats = main.getAssignedSeats()
+        while (seat in assignedSeats):
+            letterIndex = randint(1, 26)
+            letter = alphabet[letterIndex+1]
+            num = randint(1,9)
+            seat = letter + str(num)
 
     def cancelBooking(self, tno):
         dBook = "DELETE FROM bookings WHERE tno = " + tno;
