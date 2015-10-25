@@ -79,6 +79,20 @@ class UserMenu(object):
             else: print("Please enter a valid input. ")
 
     def makeABooking():
+        # get name of user, check if in passengers table
+        checkIfPassenger = "SELECT * FROM passengers WHERE email = '" + self.email + "'"
+        db = main.getDatabase()
+        db.execute(checkIfPassenger)
+        isPassenger = db.cursor.fetchall()
+        if len(isPassenger) < 0:
+            # ask for name and country
+            (name, country) = self.getNameAndCountry()
+
+            # add to passenger table
+            addPassenger = "INSERT INTO passengers VALUES('" + self.email + "', '" + name + "', '" + country + "'"
+            db.execute(addPassenger)
+            db.execute("commit")
+        else
         pass
 
     def cancelBooking(self, tno):
@@ -97,6 +111,13 @@ class UserMenu(object):
         db.execute(logout)
         db.execute("commit")
         print("Successfully logged out.\n")
+
+    def getNameAndCountry(self):
+        while True:
+            userInput = input("Please enter your name and country, separated by a space:  ")
+            (name, country) = userInput.split(' ')
+            if len(name) > 0 and len(country) > 0: return name, country
+            else: print("Please enter valid input. \n")  
 
 
 
