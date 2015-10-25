@@ -92,7 +92,7 @@ class UserMenu(object):
             addPassenger = "INSERT INTO passengers VALUES('" + self.email + "', '" + name + "', '" + country + "'"
             db.execute(addPassenger)
             db.execute("commit")
-        else
+        #else
         pass
 
     def cancelBooking(self, tno):
