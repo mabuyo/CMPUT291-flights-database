@@ -8,7 +8,7 @@ airport_query = "SELECT *  FROM airports WHERE name LIKE '%{0}%' OR city LIKE '%
 def isValidAcode(code):
     db = main.getDatabase()
     db.execute('SELECT acode FROM airports') 
-    return code in [code for result in db.cursor.fetchall() for code in result]
+    return code.upper() in [code for result in db.cursor.fetchall() for code in result]
 
 def getMatchingAirports(userInput):
 
@@ -31,10 +31,14 @@ def searchFlights(src, dst, dep_date):
 
     db = main.getDatabase()
     db.execute(TRIP_QUERY.format(dep_date, src, dst)) 
+    print(TRIP_QUERY.format(dep_date, src, dst))
     flights = db.cursor.fetchall()
     if flights:
         print ("Here are flights that match your query: ")
         pprint.pprint(flights)
     else: 
         print("No flights found")
+        db.execute(Q2) 
+        flights = db.cursor.fetchall()
+        pprint.pprint(flights)
 
