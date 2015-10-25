@@ -1,9 +1,21 @@
 import main
+import queries2 as q
+import util_methods as util
 
 class UserMenu(object):
     def __init__(self, email):
         self.email = email
         self.bookings = []
+        self.getUserDetails()
+
+    def getUserDetails(self):
+        getDetails = "SELECT p.name, p.country FROM passengers p, users u WHERE p.email = '" + self.email + "'"
+        db = main.getDatabase()
+        db.execute(getDetails)
+        details = db.cursor.fetchall()
+        if len(details) > 0: 
+            self.name = details[0][0]
+            self.country = details[0][1]
 
     def showMenu(self):
         """
@@ -20,19 +32,38 @@ class UserMenu(object):
                 self.setLastLogin()
                 main.showMainMenu()
             elif (userInput == "test"):
-                self.makeABooking()
+                #self.makeABooking(<flight details from flight results>)
+                #insert into sch_flights values ('AC1525',to_date('06-Jul-2015','DD-Mon-YYYY'),to_date('19:35', 'hh24:mi'),to_date('23:27', 'hh24:mi'));
+                print(self.findFare('AC1525', '189'))
+                #self.makeABooking(('AC1525', 'TWF','TSS', '06-Jul-2015', '19:35', 0, 0, '189', 12 ))
             else: print("Pick a valid option. \n")
 
     def searchForFlights(self):
         """
         This menu is for searching for flights.
         """
-        while True:
-            flightParameters = input("Enter the source, destination and departure date (DD-MON-YYYY), separated by spaces. (R) for returning to previous menu.\n")
-            if flightParameters == "R": self.showMenu()
-            else: 
-                print("To be implemented......\n")
+        acode_s, acode_d, date = "", "", ""
+        while acode_s == "" and acode_d == "" and date == "":
+            src = input("Enter the source airport ('R' for previous menu): ")
+            acode_s = self.getAcode(src) 
+            
+            dst = input("Enter the destination airport ('R' for previous menu): ")
+            acode_d = self.getAcode(dst) 
 
+            date = input("Enter the date of travel in format DD/MM/YYYY ('R' for previous menu): ")
+            if not util.validate(date):
+                date = input("Try again ('R' for previous menu): ")
+        
+        q.searchFlights(acode_s, acode_d, date)
+
+    def getAcode(self, airport):
+        if airport == "R": self.showMenu()
+        elif q.isValidAcode(airport):
+            return airport
+        else: 
+            q.getMatchingAirports(airport); 
+            acode = input("Please enter select a 3-letter airport code from the list and enter it here: ")
+            
 
     def showExistingBookings(self):
         """
@@ -50,7 +81,7 @@ class UserMenu(object):
         for result in booking_results:
             self.bookings.append(result[0])
             print (str(result[0]) + "    " + result[1] + "   " + str(result[2]) + "   " + str(result[3]) + "\n")
-        db.close()
+        #db.close()
 
     def promptForBooking(self):
         """
@@ -64,7 +95,7 @@ class UserMenu(object):
                 db = main.getDatabase()
                 db.execute(showDetails)
                 details = db.cursor.fetchall()
-                db.close()
+                #db.close()
                 for d in details: print(d)  
                 self.detailedBooking(ticket_no)
             else: print("Please enter a valid ticket number. ")
@@ -82,23 +113,63 @@ class UserMenu(object):
                 self.promptForBooking()
             else: print("Please enter a valid input. ")
 
-    def makeABooking(self):
+    def makeABooking(self, flightDetails):
+        #flightDetails = (flight number, source, destination, departure, arrival time, the number of stops, the layover time, the price, and the number of seats at that price.)
+        flightno = flightDetails[0]
+        dep_date = flightDetails[3]
+        price = flightDetails[7]
+        # need to find fare
+        fare = self.findFare(flightno, price)
+        seat = '20B' #TODO: generate seat numbers... not sure how. emailed Kriti
+
         # get name of user, check if in passengers table
         checkIfPassenger = "SELECT * FROM passengers WHERE email = '" + self.email + "'"
         db = main.getDatabase()
         db.execute(checkIfPassenger)
         isPassenger = db.cursor.fetchall()
+
+        #db.close()
         if len(isPassenger) < 0:
             # ask for name and country
-            (name, country) = self.getNameAndCountry()
+            (name, country) = self.promptForNameAndCountry()
 
             # add to passenger table
             addPassenger = "INSERT INTO passengers VALUES('" + self.email + "', '" + name + "', '" + country + "'"
             db.execute(addPassenger)
             db.execute("commit")
-            db.close()
-        #else
-        pass
+            #db.close()
+        else: 
+            # name and country already exists
+            name = self.name
+            country = self.country
+            tno = self.generateTicketNumber()
+            tno = str(tno)
+            # check if seat is still available
+            checkSeatsAvail = "SELECT limit FROM flight_fares WHERE flightno = '" + flightno + "' AND limit > 0"
+            db.execute(checkSeatsAvail)
+            seatAvail = db.cursor.fetchall()
+            if len(seatAvail) < 0:
+                print("Sorry, this seat is no longer available. Please try another flight.")
+                self.showMenu()
+            else: 
+                insertTicket = "INSERT INTO tickets VALUES('" + tno + "', '" + name + "', '" + self.email + "', '" + price + "')"
+                insertBooking = "INSERT INTO bookings VALUES('" + tno + "', '" + flightno + "', '" + fare + "', to_date('" + dep_date + "', 'hh24:mi'), '" + seat + "')"
+                db.execute(insertTicket)
+                db.execute("commit")  
+                db.execute(insertBooking)
+                db.execute("commit")  
+                print("Your flight has been booked with the ticket number " + tno + ". Returning to main menu...\n")
+            self.showMenu()
+        
+
+    def generateTicketNumber(self):
+        # get max tno
+        findMaxTno = "SELECT MAX(tno) FROM tickets"
+        db = main.getDatabase()
+        db.execute(findMaxTno)
+        maxTno = db.cursor.fetchall()
+        if len(maxTno) < 0: return 1
+        else: return int(maxTno[0][0]) + 1
 
     def cancelBooking(self, tno):
         dBook = "DELETE FROM bookings WHERE tno = " + tno;
@@ -107,7 +178,7 @@ class UserMenu(object):
         db.execute(dBook)
         db.execute(dTix)
         db.execute("commit")
-        db.close()
+        #db.close()
         print("Booking successfully cancelled. Returning to main menu.\n")
         self.showMenu()
 
@@ -116,10 +187,10 @@ class UserMenu(object):
         db = main.getDatabase()
         db.execute(logout)
         db.execute("commit")
-        db.close()
+        #db.close()
         print("Successfully logged out.\n")
 
-    def getNameAndCountry(self):
+    def promptForNameAndCountry(self):
         while True:
             userInput = input("Please enter your name and country, separated by a space:  ")
             (name, country) = userInput.split(' ')
