@@ -19,6 +19,8 @@ class UserMenu(object):
             elif (userInput == "L"):
                 self.setLastLogin()
                 main.showMainMenu()
+            elif (userInput == "test"):
+                self.makeABooking()
             else: print("Pick a valid option. \n")
 
     def searchForFlights(self):
@@ -48,6 +50,7 @@ class UserMenu(object):
         for result in booking_results:
             self.bookings.append(result[0])
             print (str(result[0]) + "    " + result[1] + "   " + str(result[2]) + "   " + str(result[3]) + "\n")
+        db.close()
 
     def promptForBooking(self):
         """
@@ -78,7 +81,7 @@ class UserMenu(object):
                 self.promptForBooking()
             else: print("Please enter a valid input. ")
 
-    def makeABooking():
+    def makeABooking(self):
         # get name of user, check if in passengers table
         checkIfPassenger = "SELECT * FROM passengers WHERE email = '" + self.email + "'"
         db = main.getDatabase()
@@ -92,6 +95,7 @@ class UserMenu(object):
             addPassenger = "INSERT INTO passengers VALUES('" + self.email + "', '" + name + "', '" + country + "'"
             db.execute(addPassenger)
             db.execute("commit")
+            db.close()
         #else
         pass
 
