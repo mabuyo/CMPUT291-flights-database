@@ -4,8 +4,9 @@ From the specification: Registered users should be able to login using a valid e
 """
 
 import getpass 
-import menuHandler
 import main
+import userMenu
+import agentMenu
 
 def handleLogin():
     # ask user for email and password
@@ -24,8 +25,10 @@ def handleLogin():
         db.execute(checkIfAgent)
         agent_results = db.cursor.fetchall()
         if len(agent_results) > 0:
-            menuHandler.handleAgentMenu(user_email)
-        else: menuHandler.handleUserMenu(user_email)
+             menu = agentMenu.AgentMenu(user_email)
+        else:
+            menu = userMenu.UserMenu(user_email)
+        menu.showMenu()
     else: 
         print("User does not exist or password is incorrect.")
         main.showMainMenu()
