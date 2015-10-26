@@ -54,7 +54,7 @@ class UserMenu(object):
     def getAcode(self, airport):
         if airport == "R": self.showMenu()
         elif q.isValidAcode(airport):
-            return airport
+            return airport.upper()
         else: 
             q.getMatchingAirports(airport); 
             acode = input("Please enter select a 3-letter airport code from the list and enter it here: ")
