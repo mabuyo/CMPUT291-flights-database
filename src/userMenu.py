@@ -45,8 +45,8 @@ class UserMenu(object):
         if not acode_s: acode_s = ""
         if not acode_d: acode_d = ""
         if not date: date = ""
-        passengers = input("How many passengers? \n")
-        if int(passengers) > 1: self.searchForParties(acode_s, acode_d, date, passengers)
+        passengers = input("Input the number of passengers to go to Extra Task: More than one passenger. Else, press Enter. \n")
+        if len(passengers) > 0: self.searchForParties(acode_s, acode_d, date, passengers)
         while set([acode_s, acode_d, date]).intersection([""]):
             if acode_s == "":
                 src = input("Enter the source airport ('R' for previous menu): ")
