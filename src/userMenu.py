@@ -63,12 +63,38 @@ class UserMenu(object):
                     date = input("Try again ('R' for previous menu): ")
         
         flights = sf.searchFlights(acode_s, acode_d, date)
+        sortType  = 'price'
         if flights:
             print ("Here are flights that match your query: ")
             print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats \n")
             for f in flights:
                 print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
-            self.bookingOptions(flights, acode_s, acode_d, date)    # go to booking options
+            while True:
+                if sortType == 'price': sortText = 'connections'
+                else: sortText = 'price'
+                sort = input("Sort by " + sortText + " (S) or choose booking options. R to return to main menu.")
+                if sort == 'S':
+                    if sortType == 'price':  #default
+                        flights = sf.searchFlights(acode_s, acode_d, date)
+                        if flights:
+                            print ("Sorted by connections: ")
+                            print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats \n")
+                            for f in flights:
+                                print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
+                            sortType = 'price'
+                    else: 
+                        flights = sf.sortFlights(acode_s, acode_d, date)
+                        if flights:
+                            print ("Sorted by connections: ")
+                            print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats \n")
+                            for f in flights:
+                                print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
+                            sortType = 'connections'
+                elif sort == 'B':
+                    self.bookingOptions(flights, acode_s, acode_d, date)    # go to booking option
+                elif sort == 'R':
+                    self.showMenu()
+                else: print("Not a valid option. Please try again.\n ")
         else: 
             print("No flights found, Try again.")
 
@@ -187,6 +213,10 @@ class UserMenu(object):
     return
     mls--> wrl
     08/08/2015
+    '''
+
+    ''' example for connections sorting
+    
     '''
     
     def makeABooking(self, flightDetails):

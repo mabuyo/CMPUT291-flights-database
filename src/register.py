@@ -25,7 +25,7 @@ def handleRegister():
     if len(user_results) > 0: # user exists!
         print("User already exists. Please log in.\n")
         main.showMainMenu()
-    #elif ('@' not in user_email)   #TODO: add validity check for email
+    # valid email check from: http://stackoverflow.com/questions/8022530/python-check-for-valid-email-address
     if not re.match(r"[^@]+@[^@]+\.[^@]+", user_email):
         print("Not a valid email. Please try again.")
         handleRegister()
