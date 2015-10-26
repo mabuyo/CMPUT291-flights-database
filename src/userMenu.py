@@ -53,12 +53,12 @@ class UserMenu(object):
             
             if acode_d == "":
                 dst = input("Enter the destination airport ('R' to re-enter src): ")
-                if dst == 'R': self.searchForFlights(acode_s=acode_s)
+                if dst == 'R': self.searchForFlights()
                 acode_d = self.getAcode(dst) 
 
             if date == "":
                 date = input("Enter the date of travel in format DD/MM/YYYY ('R' to re-enter dst): ")
-                if dst == 'R': self.searchForFlights(acode_s=acode_s, acode_d=acode_d)
+                if dst == 'R': self.searchForFlights(acode_s=acode_s)
                 if not util.validate(date):
                     date = input("Try again ('R' for previous menu): ")
         
@@ -152,8 +152,11 @@ class UserMenu(object):
         elif sf.isValidAcode(airport):
             return airport.upper()
         else: 
-            sf.getMatchingAirports(airport); 
-            acode = input("Please select a 3-letter airport code from the list and enter it here: ")
+            matching = sf.getMatchingAirports(airport); 
+            while True:
+                acode = input("Please select a valid 3-letter airport code from the list and enter it here: ")
+                if acode == "R": self.showMenu()
+                elif acode in matching: return acode
 
 
     def showExistingBookings(self):
@@ -216,7 +219,7 @@ class UserMenu(object):
     '''
 
     ''' example for connections sorting
-    
+
     '''
     
     def makeABooking(self, flightDetails):
