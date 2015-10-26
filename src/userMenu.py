@@ -130,7 +130,7 @@ class UserMenu(object):
         db.execute(checkIfPassenger)
         isPassenger = db.cursor.fetchall()
 
-        if len(isPassenger) < 0:    # not in passengers table 
+        if len(isPassenger) == 0:    # not in passengers table 
             # ask for name and country
             (name, country) = self.promptForNameAndCountry()
 
@@ -145,13 +145,16 @@ class UserMenu(object):
             country = self.country
             tno = self.generateTicketNumber()
             tno = str(tno)
+
             # check if seat is still available by searching for the flights again
             FLIGHTS_AVAIL = "SELECT * FROM (select flightno1, flightno2, layover, price from ( select flightno1, flightno2, layover, price, row_number() over (order by price asc) rn from (select flightno1, flightno2, layover, price from good_connections where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}' union select flightno flightno1, '' flightno2, 0 layover, price from available_flights where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}'))) WHERE flightno1 = '" + flightno + "'"
             db.execute(FLIGHTS_AVAIL.format(dep_date, src, dst)) 
             flights = db.cursor.fetchall()
+
             if len(flights) == 0:
                 print("Sorry, this seat is no longer available. Please try another flight.")
                 self.showMenu()
+
             else: 
                 insertTicket = "INSERT INTO tickets VALUES('" + tno + "', '" + name + "', '" + self.email + "', '" + price + "')"
                 insertBooking = "INSERT INTO bookings VALUES('" + tno + "', '" + flightno + "', '" + fare + "', to_date('" + dep_date + "', 'DD-Mon-YYYY'), '" + seat + "')"
@@ -165,8 +168,7 @@ class UserMenu(object):
                     error = exc.args
                     print( sys.stderr, "Oracle code:", error.code)
                     print( sys.stderr, "Oracle message:", error.message)
-                self.showMenu()
-                
+                self.showMenu()  
 
     def generateTicketNumber(self):
         # get max tno
@@ -174,7 +176,7 @@ class UserMenu(object):
         db = main.getDatabase()
         db.execute(findMaxTno)
         maxTno = db.cursor.fetchall()
-        if len(maxTno) < 0: return 1
+        if len(maxTno) == 0: return 1
         else: return int(maxTno[0][0]) + 1
 
     def generateSeatNumber(self):
