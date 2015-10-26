@@ -5,6 +5,7 @@ From project specifications: Unregistered users should be able to sign up by pro
 import getpass 
 import menuHandler
 import main
+import re
 
 def handleRegister():
     # ask for email and password
@@ -24,7 +25,11 @@ def handleRegister():
     if len(user_results) > 0: # user exists!
         print("User already exists. Please log in.\n")
         main.showMainMenu()
-    elif (len(user_pw) > 4):
+    #elif ('@' not in user_email)   #TODO: add validity check for email
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", user_email):
+        print("Not a valid email. Please try again.")
+        handleRegister()
+    if (len(user_pw) > 4):
         print("Password must NOT be more than 4 characters.")
         handleRegister()
     else:   # everything is valid!
