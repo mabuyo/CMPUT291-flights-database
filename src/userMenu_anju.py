@@ -22,7 +22,8 @@ class UserMenu(object):
                 self.setLastLogin()
                 main.showMainMenu()
             else: print("Pick a valid option. \n")
-
+    
+    #AnjuMenu
     def searchForFlights(self, acode_s=None, acode_d=None, date=None):
         """
         This menu is for searching for flights.
@@ -52,18 +53,55 @@ class UserMenu(object):
             print ("Here are flights that match your query: ")
             for f in flights:
                 print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
+            self.bookingOptions(flights, acode_s, acode_d, date)
         else: 
             print("No flights found, Try again.")
-            self.searchForFlights() 
+             
         
+    #AnjuMenu
+    def bookingOptions(self, searchResults, acode_s, acode_d, date):
+        # get trip type
+        print("\n")      
+        tripType = input("Book one-way trip (1) or book round-trip (2).\n")
+        if tripType == "1":
+            rowSelection = input("Please enter row number of trip you would like to book.\n")
+            try:
+                self.bookings(searchResults[rowSelection])
+            except:
+                print("Could not complete booking. Please try again.\n")
+                self.showMenu()        
+        elif tripType == "2":
+            return_date = input("Please enter return date in format DD/MM/YYYY.\n")
+            if not util.validate(return_date): # date is invalid. let's you try twice, then shows you the list of availble flights
+                return_date = input("Please enter return date in format DD/MM/YYYY.\n")
 
+            returnFlights = q.searchFlights(acode_d, acode_s, return_date) # search for return flights
+            if returnFlights:
+                print ("Here are the return flights that match your query: ")
+                for f in returnFlights:
+                    print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
+                rowSelectionDepart = input("Please enter row number of departure flight from first table.\n")
+                rowSelectionReturn = input("Please enter row number of return flight from second table.\n")
+                try:
+                    self.bookings(searchResults[rowSelectionDepart]) # departure flight
+                    self.bookings(returnFlights[rowSelectionReturn]) # return flight
+                except:
+                    print("Could not complete booking. Please try again.\n")
+            else: 
+                print("No return flights found, Try again.")
+
+        else: # did not pick 1 or 2
+            self.bookingOptions(searchResults, acode_s, acode_d, date)
+
+
+    # AnjuMenu
     def getAcode(self, airport):
         if airport == "R": self.showMenu()
         elif q.isValidAcode(airport):
             return airport.upper()
         else: 
             q.getMatchingAirports(airport); 
-            acode = input("Please enter select a 3-letter airport code from the list and enter it here: ")
+            acode = input("Please select a 3-letter airport code from the list and enter it here: ")
             
 
     def showExistingBookings(self):

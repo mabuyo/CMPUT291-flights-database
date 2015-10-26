@@ -37,8 +37,10 @@ class UserMenu(object):
                 #insert into sch_flights values ('AC1525',to_date('06-Jul-2015','DD-Mon-YYYY'),to_date('19:35', 'hh24:mi'),to_date('23:27', 'hh24:mi'));
                 #(flight number, source, destination, departure time, arrival time, the number of stops, the layover time, the price, and the number of seats at that price, fare:notprinted, dep_date)
                 self.makeABooking(('AC1525', 'TWF','TSS', '19:35', '23:27', 0, 0, '189', 12, 'C', '06-Jul-2015'))
-            else: print("Pick a valid option. \n")
-
+            else: 
+                print("Pick a valid option. \n")
+    
+    '''
     def searchForFlights(self):
         """
         This menu is for searching for flights.
@@ -65,6 +67,92 @@ class UserMenu(object):
             q.getMatchingAirports(airport); 
             acode = input("Please enter select a 3-letter airport code from the list and enter it here: ")
             
+    '''
+
+    
+    #AnjuMenu
+    def searchForFlights(self, acode_s=None, acode_d=None, date=None):
+        """
+        This menu is for searching for flights.
+        """
+        if not acode_s: acode_s = ""
+        if not acode_d: acode_d = ""
+        if not date: date = ""
+        while set([acode_s, acode_d, date]).intersection([""]):
+            if acode_s == "":
+                src = input("Enter the source airport ('R' for previous menu): ")
+                if src == 'R': self.showMenu()
+                acode_s = self.getAcode(src) 
+            
+            if acode_d == "":
+                dst = input("Enter the destination airport ('R' to re-enter src): ")
+                if dst == 'R': self.searchForFlights(acode_s=acode_s)
+                acode_d = self.getAcode(dst) 
+
+            if date == "":
+                date = input("Enter the date of travel in format DD/MM/YYYY ('R' to re-enter dst): ")
+                if dst == 'R': self.searchForFlights(acode_s=acode_s, acode_d=acode_d)
+                if not util.validate(date):
+                    date = input("Try again ('R' for previous menu): ")
+        
+        flights = q.searchFlights(acode_s, acode_d, date)
+        if flights:
+            print ("Here are flights that match your query: ")
+            for f in flights:
+                print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
+            self.bookingOptions(flights, acode_s, acode_d, date)
+        else: 
+            print("No flights found, Try again.")
+             
+        
+    #AnjuMenu
+    def bookingOptions(self, searchResults, acode_s, acode_d, date):
+        # get trip type
+        print("\n")      
+        tripType = input("Book one-way trip (1) or book round-trip (2).\n")
+        if tripType == "1":
+            rowSelection = input("Please enter row number of trip you would like to book.\n")
+            
+            print(searchResults[int(float(rowSelection))])
+            try:
+                self.makeABooking(searchResults[int(float(rowSelection))])
+            except:
+                print("Could not complete booking. Please try again.\n")
+                self.showMenu()        
+        elif tripType == "2":
+            return_date = input("Please enter return date in format DD/MM/YYYY.\n")
+            if not util.validate(return_date): # date is invalid. let's you try twice, then shows you the list of availble flights
+                return_date = input("Please enter return date in format DD/MM/YYYY.\n")
+
+            returnFlights = q.searchFlights(acode_d, acode_s, return_date) # search for return flights
+            if returnFlights:
+                print ("Here are the return flights that match your query: ")
+                for f in returnFlights:
+                    print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
+                rowSelectionDepart = input("Please enter row number of departure flight from first table.\n")
+                rowSelectionReturn = input("Please enter row number of return flight from second table.\n")
+                try:
+                    self.makeABooking(searchResults[int(float(rowSelectionDepart))]) # departure flight
+                    self.makeABooking(returnFlights[int(float(rowSelectionReturn))]) # return flight
+                except:
+                    print("Could not complete booking. Please try again.\n")
+            else: 
+                print("No return flights found, Try again.")
+
+        else: # did not pick 1 or 2
+            self.bookingOptions(searchResults, acode_s, acode_d, date)
+
+
+    # AnjuMenu
+    def getAcode(self, airport):
+        if airport == "R": self.showMenu()
+        elif q.isValidAcode(airport):
+            return airport.upper()
+        else: 
+            q.getMatchingAirports(airport); 
+            acode = input("Please select a 3-letter airport code from the list and enter it here: ")
+            
+
 
     def showExistingBookings(self):
         """
@@ -114,14 +202,30 @@ class UserMenu(object):
                 self.promptForBooking()
             else: print("Please enter a valid input. ")
 
+
+    '''
+    example booking:
+    src: wrl
+    dst: mls
+    13/12/2015
+
+    return
+    mls--> wrl
+    08/08/2015
+    '''
+    
     def makeABooking(self, flightDetails):
         #flightDetails = (flight number, source, destination, departure time, arrival time, the number of stops, the layover time, the price, and the number of seats at that price, fare:notprinted, dep_date)
+        # what is currently passed in: flightno1(0), flightno2(1), src(2), dst(3), dep_time(4), arr_time(5), layover(6), numStops(7), fare1(8), fare2(9), price(10), seats(11)        
         flightno = flightDetails[0]
-        src = flightDetails[1]
-        dst = flightDetails[2]
-        dep_date = flightDetails[10]
-        price = flightDetails[7]
-        fare = flightDetails[9]
+        # flightno2 = flightDetails[1] will be 'None' if no connecting flight
+        # numStops and layover will be zero if no connecting flight
+        # TODO implement functionality for 
+        src = flightDetails[2]
+        dst = flightDetails[3]
+        ####dep_date = flightDetails[10]  #### TODO will have to pass this in to the method, because it's not returned in the query
+        price = flightDetails[10] # don't think this is needed for booking
+        fare = flightDetails[8]
         seat = self.generateSeatNumber()
 
         # get name of user, check if in passengers table
