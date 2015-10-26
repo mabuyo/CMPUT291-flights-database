@@ -47,8 +47,14 @@ class UserMenu(object):
                 if not util.validate(date):
                     date = input("Try again ('R' for previous menu): ")
         
-        q.searchFlights(acode_s, acode_d, date)
-    
+        flights = q.searchFlights(acode_s, acode_d, date)
+        if flights:
+            print ("Here are flights that match your query: ")
+            for f in flights:
+                print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
+        else: 
+            print("No flights found, Try again.")
+            self.searchForFlights() 
         
 
     def getAcode(self, airport):

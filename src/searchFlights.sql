@@ -32,15 +32,15 @@ spool new_gc2.txt
 select * from good_connections;
 spool off;
 
-select flightno1, flightno2, layover, price 
+select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats 
 from (
-select flightno1, flightno2, layover, price, row_number() over (order by price asc) rn 
+select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, row_number() over (order by price asc) rn 
 from 
-(select flightno1, flightno2, layover, price
+(select flightno1, flightno2, src, dst, dep_time, arr_time, layover, 1 numStops, fare1, fare2, price, seats
 from good_connections
 where to_char(dep_date,'DD/MM/YYYY')='22/12/2015' and src='YEG' and dst='LAX'
 union
-select flightno flightno1, '' flightno2, 0 layover, price
+select flightno, '' flightno2, src, dst, dep_time, arr_time, 0  layover, 0 numStops, fare, '' fare2, price, seats
 from available_flights
 where to_char(dep_date,'DD/MM/YYYY')='22/12/2015' and src='YEG' and dst='LAX'));
 

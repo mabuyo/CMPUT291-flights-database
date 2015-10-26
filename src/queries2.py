@@ -1,7 +1,8 @@
 import main
 import pprint
 
-TRIP_QUERY = "select flightno1, flightno2, layover, price from ( select flightno1, flightno2, layover, price, row_number() over (order by price asc) rn from (select flightno1, flightno2, layover, price from good_connections where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}' union select flightno flightno1, '' flightno2, 0 layover, price from available_flights where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}'))"
+TRIP_QUERY = "select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats from ( select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, row_number() over (order by price asc) rn from (select flightno1, flightno2, src, dst, dep_time, arr_time, layover, 1 numStops, fare1, fare2, price, seats from good_connections where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}' union select flightno, '' flightno2, src, dst, dep_time, arr_time, 0  layover, 0 numStops, fare, '' fare2, price, seats from available_flights where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}') order by price)"
+
 
 airport_query = "SELECT *  FROM airports WHERE name LIKE '%{0}%' OR city LIKE '%{0}%'"  
 
@@ -31,14 +32,5 @@ def searchFlights(src, dst, dep_date):
 
     db = main.getDatabase()
     db.execute(TRIP_QUERY.format(dep_date, src, dst)) 
-    print(TRIP_QUERY.format(dep_date, src, dst))
-    flights = db.cursor.fetchall()
-    if flights:
-        print ("Here are flights that match your query: ")
-        pprint.pprint(flights)
-    else: 
-        print("No flights found")
-        db.execute(Q2) 
-        flights = db.cursor.fetchall()
-        pprint.pprint(flights)
+    return db.cursor.fetchall()
 
