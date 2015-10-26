@@ -218,7 +218,7 @@ class UserMenu(object):
     def makeABooking(self, flightDetails):
         # flightDetails: flightno1(0), flightno2(1), src(2), dst(3), dep_time(4), arr_time(5), layover(6), numStops(7), fare1(8), fare2(9), price(10), seats(11), dep_date(12)       
         flightno = flightDetails[0]
-        # flightno2 = flightDetails[1] will be 'None' if no connecting flight
+        flightno2 = flightDetails[1] #will be 'None' if no connecting flight
         # numStops and layover will be zero if no connecting flight
         # TODO implement functionality for 
         src = flightDetails[2]
@@ -227,6 +227,7 @@ class UserMenu(object):
         dep_date = flightDetails[12] 
         price = flightDetails[10]
         fare = flightDetails[8]
+        fare2 = flightDetails[9]
         seat = self.generateSeatNumber()
 
         # get name of user, check if in passengers table
@@ -261,12 +262,25 @@ class UserMenu(object):
             else: 
                 insertTicket = "INSERT INTO tickets VALUES('" + tno + "', '" + name + "', '" + self.email + "', '" + str(price) + "')"
                 insertBooking = "INSERT INTO bookings VALUES('" + tno + "', '" + flightno + "', '" + fare + "', to_date('" + dep_date + "', 'DD/MM/YYYY'), '" + seat + "')"
+                
                 try: 
                     db.execute(insertTicket)
                     db.execute("commit")  
                     db.execute(insertBooking)
                     db.execute("commit")  
-                    print("Your flight has been booked with the ticket number " + tno + ". Returning to main menu...\n")
+                    if (flightno2 != None):
+                        tno2 = self.generateTicketNumber()
+                        tno2 = str(tno2)
+                        seat2 = self.generateSeatNumber()
+                        insertTicket2 = "INSERT INTO tickets VALUES('" + tno2 + "', '" + name + "', '" + self.email + "', '" + str(price) + "')"
+                        insertBooking2 = "INSERT INTO bookings VALUES('" + tno + "', '" + flightno2 + "', '" + fare2 + "', to_date('" + dep_date + "', 'DD/MM/YYYY'), '" + seat + "')"
+                        db.execute(insertTicket2)
+                        db.execute("commit")  
+                        db.execute(insertBooking2)
+                        db.execute("commit")  
+                        tix = tno + ", " + tno2
+                    tix = tno
+                    print("Your flight has been booked with the ticket number(s): " + tix + ". Returning to main menu...\n")
                 except cx_Oracle.DatabaseError as exc:
                     error = exc.args
                     print( sys.stderr, "Oracle code:", error.code)
