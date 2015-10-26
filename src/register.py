@@ -3,7 +3,6 @@ register.py - handles registering of new users
 From project specifications: Unregistered users should be able to sign up by providing an email and a password.
 """
 import getpass 
-import menuHandler
 import main
 import re
 
