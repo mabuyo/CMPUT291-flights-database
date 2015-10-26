@@ -26,10 +26,12 @@ class AgentMenu(userMenu.UserMenu):
                 update = self.promptUpdate()
                 self.recordArr(fno, date, update)
             elif (userInput == "L"):
+                self.setLastLogin()
                 main.showMainMenu()
             else: print("Pick a valid option. \n")
 
     def findFlight(self):
+        #TODO, update the searching for flights maybe???
         while True:
             flight = input("Enter the flight number and departure date (DD-MON-YYYY), separated using a space. (R) to return.  ")
             if flight == 'R': self.showMenu()
