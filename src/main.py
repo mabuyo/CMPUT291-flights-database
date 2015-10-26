@@ -101,6 +101,7 @@ def setup():
     #db.execute(AVAILABLE_FLIGHTS)
     #db.execute("drop view good_connections")    
     #db.execute(GOOD_CONNECTIONS_VIEW)
+    #db.execute(GOOD_CONNECTIONS_VIEW)
     db.execute("commit")
 
 def getAssignedSeats():

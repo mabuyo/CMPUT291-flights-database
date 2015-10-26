@@ -45,6 +45,8 @@ class UserMenu(object):
         if not acode_s: acode_s = ""
         if not acode_d: acode_d = ""
         if not date: date = ""
+        passengers = input("How many passengers? \n")
+        if int(passengers) > 1: self.searchForParties(acode_s, acode_d, date, passengers)
         while set([acode_s, acode_d, date]).intersection([""]):
             if acode_s == "":
                 src = input("Enter the source airport ('R' for previous menu): ")
@@ -66,7 +68,7 @@ class UserMenu(object):
         sortType  = 'price'
         if flights:
             print ("Here are flights that match your query: ")
-            print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats \n")
+            print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats ")
             for f in flights:
                 print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
             while True:
@@ -78,7 +80,7 @@ class UserMenu(object):
                         flights = sf.searchFlights(acode_s, acode_d, date)
                         if flights:
                             print ("Sorted by connections: ")
-                            print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats \n")
+                            print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats ")
                             for f in flights:
                                 print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
                             sortType = 'price'
@@ -86,7 +88,7 @@ class UserMenu(object):
                         flights = sf.sortFlights(acode_s, acode_d, date)
                         if flights:
                             print ("Sorted by connections: ")
-                            print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats \n")
+                            print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats ")
                             for f in flights:
                                 print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
                             sortType = 'connections'
@@ -99,11 +101,78 @@ class UserMenu(object):
             print("No flights found, Try again.")
 
 
+    def searchForParties(self, acode_s=None, acode_d=None, date=None, passengers=1):
+        if not acode_s: acode_s = ""
+        if not acode_d: acode_d = ""
+        if not date: date = ""
+        while set([acode_s, acode_d, date]).intersection([""]):
+            if acode_s == "":
+                src = input("Enter the source airport ('R' for previous menu): ")
+                if src == 'R': self.showMenu()
+                acode_s = self.getAcode(src) 
+            
+            if acode_d == "":
+                dst = input("Enter the destination airport ('R' to re-enter src): ")
+                if dst == 'R': self.searchForFlights()
+                acode_d = self.getAcode(dst) 
+
+            if date == "":
+                date = input("Enter the date of travel in format DD/MM/YYYY ('R' to re-enter dst): ")
+                if dst == 'R': self.searchForFlights(acode_s=acode_s)
+                if not util.validate(date):
+                    date = input("Try again ('R' for previous menu): ")
+        
+        flights = sf.searchFlightsParties(acode_s, acode_d, date, passengers)
+        sortType  = 'price'
+        if flights:
+            print ("Here are flights that match your query: ")
+            print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats ")
+            for f in flights:
+                print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
+            while True:
+                if sortType == 'price': sortText = 'connections'
+                else: sortText = 'price'
+                sort = input("Sort by " + sortText + " (S) or choose booking options. R to return to main menu.")
+                if sort == 'S':
+                    if sortType == 'price':  #default
+                        flights = sf.searchFlightsParties(acode_s, acode_d, date, passengers)
+                        if flights:
+                            print ("Sorted by connections: ")
+                            print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats ")
+                            for f in flights:
+                                print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
+                            sortType = 'price'
+                    else: 
+                        flights = sf.sortFlightsParties(acode_s, acode_d, date)
+                        if flights:
+                            print ("Sorted by connections: ")
+                            print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats ")
+                            for f in flights:
+                                print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
+                            sortType = 'connections'
+                elif sort == 'B':
+                    self.bookingOptions(flights, acode_s, acode_d, date)    # go to booking option
+                elif sort == 'R':
+                    self.showMenu()
+                else: print("Not a valid option. Please try again.\n ")
+        else: 
+            print("No flights found, Try again.")
+
+    def bookParties(self, searchResults, acode_s, acode_d, date):
+        """
+        For booking parties more than one passenger.
+        """
+        passengers = input("Please enter the number of passengers.\n")
+            
+        l = list(searchResults[int(float(rowSelection))])
+        l.append(date)
+        flightDetails = tuple(l)
+        self.makeABooking(flightDetails) 
+
     def bookingOptions(self, searchResults, acode_s, acode_d, date):
         """
         For one-way trip and round trip options.
         """
-
         # get trip type
         print("\n")      
         tripType = input("Book one-way trip (1) or book round-trip (2).\n")
@@ -124,7 +193,7 @@ class UserMenu(object):
 
             if returnFlights:
                 print ("Here are the return flights that match your query: ")
-                print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats\n")
+                print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats")
                 for f in returnFlights:
                     print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
                 rowSelectionDepart = input("Please enter row number of departure flight from first table.\n")

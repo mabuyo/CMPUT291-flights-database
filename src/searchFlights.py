@@ -5,6 +5,10 @@ TRIP_QUERY = "select flightno1, flightno2, src, dst, dep_time, arr_time, layover
 
 TRIP_QUERY_SORT_CONNECTIONS = "select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats from ( select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, row_number() over (order by numStops asc, price asc) rn from (select flightno1, flightno2, src, dst, dep_time, arr_time, layover, 1 numStops, fare1, fare2, price, seats from good_connections where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}' union select flightno, '' flightno2, src, dst, dep_time, arr_time, 0  layover, 0 numStops, fare, '' fare2, price, seats from available_flights where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}') order by numStops asc, price asc)"
 
+TRIP_QUERY_PARTIES = "select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats from ( select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, row_number() over (order by price asc) rn from (select flightno1, flightno2, src, dst, dep_time, arr_time, layover, 1 numStops, fare1, fare2, price, seats from good_connections where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}' union select flightno, '' flightno2, src, dst, dep_time, arr_time, 0  layover, 0 numStops, fare, '' fare2, price, seats from available_flights where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}') order by price) where seats >= '{3}'"
+
+TRIP_QUERY_SORT_CONNECTIONS_PARTIES = "select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats from ( select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, row_number() over (order by numStops asc, price asc) rn from (select flightno1, flightno2, src, dst, dep_time, arr_time, layover, 1 numStops, fare1, fare2, price, seats from good_connections where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}' union select flightno, '' flightno2, src, dst, dep_time, arr_time, 0  layover, 0 numStops, fare, '' fare2, price, seats from available_flights where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}') where seats >= '{3}' order by numStops asc, price asc)"
+
 airport_query = "SELECT *  FROM airports WHERE name LIKE '%{0}%' OR city LIKE '%{0}%'"  
 
 def isValidAcode(code):
@@ -31,15 +35,23 @@ def getMatchingAirports(userInput):
 
 def searchFlights(src, dst, dep_date):
 #ensure that the src, dest and dep_date are in the correct format BEFORE calling this method
-    
     db = main.getDatabase()   
-    #db.execute(GOOD_CONNECTIONS_VIEW)
     db.execute(TRIP_QUERY.format(dep_date, src, dst)) 
     return db.cursor.fetchall()
 
 def sortFlights(src, dst, dep_date):
     # sort by number of connections and price
     db = main.getDatabase()   
-    #db.execute(GOOD_CONNECTIONS_VIEW)
     db.execute(TRIP_QUERY_SORT_CONNECTIONS.format(dep_date, src, dst)) 
+    return db.cursor.fetchall()
+
+def searchFlightsParties(src, dst, dep_date, partyNum):
+    db = main.getDatabase()   
+    db.execute(TRIP_QUERY_PARTIES.format(dep_date, src, dst, partyNum)) 
+    return db.cursor.fetchall()
+
+def sortFlights(src, dst, dep_date, partyNum):
+    # sort by number of connections and price
+    db = main.getDatabase()   
+    db.execute(TRIP_QUERY_SORT_CONNECTIONS_PARTIES.format(dep_date, src, dst, partyNum)) 
     return db.cursor.fetchall()
