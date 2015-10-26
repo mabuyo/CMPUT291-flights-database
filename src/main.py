@@ -83,6 +83,8 @@ def showMainMenu():
         elif (userStart == "register" or userStart == 'R'): 
             register.handleRegister()
         elif (userStart == "exit" or userStart == 'E'):
+            db = getDatabase()
+            db.close()  # close the connection when application is exited
             sys.exit("You have logged out of the program.")
         else: print ("Please select one of the options. \n")
 
@@ -115,7 +117,6 @@ def main():
     # executeScriptsFromFile('../res/prj_tables.sql', '../res/a2-data.sql')                    
     setup()
     showMainMenu()
- 
 
 
 # database connection will be global    

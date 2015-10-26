@@ -1,5 +1,5 @@
 import main
-import queries2 as q
+import searchFlights as sf
 import util_methods as util
 from random import randint
 
@@ -10,6 +10,9 @@ class UserMenu(object):
         self.getUserDetails()
 
     def getUserDetails(self):
+        """
+        Gets name and country if user already exists in passengers.
+        """
         getDetails = "SELECT p.name, p.country FROM passengers p, users u WHERE p.email = '" + self.email + "'"
         db = main.getDatabase()
         db.execute(getDetails)
@@ -32,46 +35,12 @@ class UserMenu(object):
             elif (userInput == "L"):
                 self.setLastLogin()
                 main.showMainMenu()
-            elif (userInput == "test"):
-                #self.makeABooking(<flight details from flight results>)
-                #insert into sch_flights values ('AC1525',to_date('06-Jul-2015','DD-Mon-YYYY'),to_date('19:35', 'hh24:mi'),to_date('23:27', 'hh24:mi'));
-                #(flight number, source, destination, departure time, arrival time, the number of stops, the layover time, the price, and the number of seats at that price, fare:notprinted, dep_date)
-                self.makeABooking(('AC1525', 'TWF','TSS', '19:35', '23:27', 0, 0, '189', 12, 'C', '06-Jul-2015'))
             else: 
                 print("Pick a valid option. \n")
     
-    '''
-    def searchForFlights(self):
-        """
-        This menu is for searching for flights.
-        """
-        acode_s, acode_d, date = "", "", ""
-        while acode_s == "" and acode_d == "" and date == "":
-            src = input("Enter the source airport ('R' for previous menu): ")
-            acode_s = self.getAcode(src) 
-            
-            dst = input("Enter the destination airport ('R' for previous menu): ")
-            acode_d = self.getAcode(dst) 
-
-            date = input("Enter the date of travel in format DD/MM/YYYY ('R' for previous menu): ")
-            if not util.validate(date):
-                date = input("Try again ('R' for previous menu): ")
-        
-        q.searchFlights(acode_s, acode_d, date)
-
-    def getAcode(self, airport):
-        if airport == "R": self.showMenu()
-        elif q.isValidAcode(airport):
-            return airport
-        else: 
-            q.getMatchingAirports(airport); 
-            acode = input("Please enter select a 3-letter airport code from the list and enter it here: ")
-            
-    '''   
-    #AnjuMenu
     def searchForFlights(self, acode_s=None, acode_d=None, date=None):
         """
-        This menu is for searching for flights.
+        This menu is used to search for flights.
         """
         if not acode_s: acode_s = ""
         if not acode_d: acode_d = ""
@@ -93,66 +62,72 @@ class UserMenu(object):
                 if not util.validate(date):
                     date = input("Try again ('R' for previous menu): ")
         
-        flights = q.searchFlights(acode_s, acode_d, date)
+        flights = sf.searchFlights(acode_s, acode_d, date)
         if flights:
             print ("Here are flights that match your query: ")
+            print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats \n")
             for f in flights:
                 print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
-            self.bookingOptions(flights, acode_s, acode_d, date)
+            self.bookingOptions(flights, acode_s, acode_d, date)    # go to booking options
         else: 
             print("No flights found, Try again.")
-             
-        
-    #AnjuMenu
+
+
     def bookingOptions(self, searchResults, acode_s, acode_d, date):
+        """
+        For one-way trip and round trip options.
+        """
+
         # get trip type
         print("\n")      
         tripType = input("Book one-way trip (1) or book round-trip (2).\n")
         if tripType == "1":
             rowSelection = input("Please enter row number of trip you would like to book.\n")
             
-            print(searchResults[int(float(rowSelection))])
-            #try:
             l = list(searchResults[int(float(rowSelection))])
             l.append(date)
             flightDetails = tuple(l)
-            self.makeABooking(flightDetails)
-            # except:
-            #     print("Could not complete booking. Please try again.\n")
-            #     self.showMenu()        
+            self.makeABooking(flightDetails) 
+
         elif tripType == "2":
             return_date = input("Please enter return date in format DD/MM/YYYY.\n")
             if not util.validate(return_date): # date is invalid. let's you try twice, then shows you the list of availble flights
                 return_date = input("Please enter return date in format DD/MM/YYYY.\n")
 
-            returnFlights = q.searchFlights(acode_d, acode_s, return_date) # search for return flights
+            returnFlights = sf.searchFlights(acode_d, acode_s, return_date) # search for return flights
+
             if returnFlights:
                 print ("Here are the return flights that match your query: ")
+                print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats\n")
                 for f in returnFlights:
                     print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
                 rowSelectionDepart = input("Please enter row number of departure flight from first table.\n")
                 rowSelectionReturn = input("Please enter row number of return flight from second table.\n")
-                try:
-                    self.makeABooking(searchResults[int(float(rowSelectionDepart))]) # departure flight
-                    self.makeABooking(returnFlights[int(float(rowSelectionReturn))]) # return flight
-                except:
-                    print("Could not complete booking. Please try again.\n")
+
+                # add some more flight details to tuple
+                l = list(searchResults[int(float(rowSelectionDepart))])
+                l.append(date)
+                flightDetails = tuple(l)
+                self.makeABooking(flightDetails)    #departure flight
+
+                # add some more flight details to tuple
+                l = list(returnFlights[int(float(rowSelectionReturn))])
+                l.append(date)
+                returnDetails = tuple(l)
+                self.makeABooking(returnDetails) # return flight
             else: 
                 print("No return flights found, Try again.")
 
         else: # did not pick 1 or 2
             self.bookingOptions(searchResults, acode_s, acode_d, date)
 
-
-    # AnjuMenu
     def getAcode(self, airport):
         if airport == "R": self.showMenu()
-        elif q.isValidAcode(airport):
+        elif sf.isValidAcode(airport):
             return airport.upper()
         else: 
-            q.getMatchingAirports(airport); 
+            sf.getMatchingAirports(airport); 
             acode = input("Please select a 3-letter airport code from the list and enter it here: ")
-            
 
 
     def showExistingBookings(self):
@@ -171,7 +146,6 @@ class UserMenu(object):
         for result in booking_results:
             self.bookings.append(result[0])
             print (str(result[0]) + "    " + result[1] + "   " + str(result[2]) + "   " + str(result[3]) + "\n")
-        #db.close()
 
     def promptForBooking(self):
         """
@@ -253,7 +227,7 @@ class UserMenu(object):
             tno = str(tno)
 
             # check if seat is still available by searching for the flights again
-            flights = q.searchFlights(src, dst, dep_date)
+            flights = sf.searchFlights(src, dst, dep_date)
 
             if len(flights) == 0:
                 print("Sorry, this seat is no longer available. Please try another flight.")
@@ -288,6 +262,9 @@ class UserMenu(object):
                 self.showMenu()  
 
     def generateTicketNumber(self):
+        """
+        Generates a ticket number by getting the max ticket number from the tickets table and incrementing by one.
+        """
         # get max tno
         findMaxTno = "SELECT MAX(tno) FROM tickets"
         db = main.getDatabase()
@@ -297,6 +274,9 @@ class UserMenu(object):
         else: return int(maxTno[0][0]) + 1
 
     def generateSeatNumber(self):
+        """
+        Generates seat number by random and does not assign already taken seats, regardless of flightno (TA Kriti suggested this to avoid complications)
+        """
         alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
         assignedSeats = main.getAssignedSeats()
         letterIndex = randint(0, 25)
@@ -311,6 +291,10 @@ class UserMenu(object):
         return seat
 
     def cancelBooking(self, tno):
+        """
+        Cancels selected tno booking.
+        """
+
         dBook = "DELETE FROM bookings WHERE tno = " + tno;
         dTix = "DELETE FROM tickets WHERE tno = " + tno;
         db = main.getDatabase()
@@ -322,14 +306,19 @@ class UserMenu(object):
         self.showMenu()
 
     def setLastLogin(self):
+        """
+        Logs out the user and updates last_login
+        """
         logout = "UPDATE users SET last_login = SYSDATE " + "WHERE email = '" + self.email + "'"
         db = main.getDatabase()
         db.execute(logout)
         db.execute("commit")
-        #db.close()
         print("Successfully logged out.\n")
 
     def promptForNameAndCountry(self):
+        """
+        Used when user is not in the passengers table.
+        """
         while True:
             userInput = input("Please enter your name and country, separated by a space:  ")
             (name, country) = userInput.split(' ')
