@@ -86,17 +86,21 @@ def showMainMenu():
             sys.exit("You have logged out of the program.")
         else: print ("Please select one of the options. \n")
 
+def getDatabase():
+    return db
+
 def setup():
     """
     This is where any one-time setups go.
     """
     # read existing assigned seats from table
     # getAssignedSeats()
-    db = main.getDatabase()
+    db = getDatabase()
     #db.execute("drop view available_flights")
-    db.execute(AVAILABLE_FLIGHTS)
+    #db.execute(AVAILABLE_FLIGHTS)
     #db.execute("drop view good_connections")    
-    db.execute(GOOD_CONNECTIONS_VIEW)
+    #db.execute(GOOD_CONNECTIONS_VIEW)
+    db.execute("commit")
 
 def getAssignedSeats():
     getSeats = "SELECT DISTINCT seat from bookings"
@@ -109,11 +113,10 @@ def getAssignedSeats():
 def main():
     # TODO: take this out before submitting!!! this is solely for testing purposes
     # executeScriptsFromFile('../res/prj_tables.sql', '../res/a2-data.sql')                    
-    showMainMenu()
     setup()
+    showMainMenu()
  
-def getDatabase():
-    return db
+
 
 # database connection will be global    
 db_input = getDatabaseDetails()

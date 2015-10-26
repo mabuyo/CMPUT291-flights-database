@@ -67,9 +67,7 @@ class UserMenu(object):
             q.getMatchingAirports(airport); 
             acode = input("Please enter select a 3-letter airport code from the list and enter it here: ")
             
-    '''
-
-    
+    '''   
     #AnjuMenu
     def searchForFlights(self, acode_s=None, acode_d=None, date=None):
         """
@@ -114,11 +112,14 @@ class UserMenu(object):
             rowSelection = input("Please enter row number of trip you would like to book.\n")
             
             print(searchResults[int(float(rowSelection))])
-            try:
-                self.makeABooking(searchResults[int(float(rowSelection))])
-            except:
-                print("Could not complete booking. Please try again.\n")
-                self.showMenu()        
+            #try:
+            l = list(searchResults[int(float(rowSelection))])
+            l.append(date)
+            flightDetails = tuple(l)
+            self.makeABooking(flightDetails)
+            # except:
+            #     print("Could not complete booking. Please try again.\n")
+            #     self.showMenu()        
         elif tripType == "2":
             return_date = input("Please enter return date in format DD/MM/YYYY.\n")
             if not util.validate(return_date): # date is invalid. let's you try twice, then shows you the list of availble flights
@@ -215,16 +216,16 @@ class UserMenu(object):
     '''
     
     def makeABooking(self, flightDetails):
-        #flightDetails = (flight number, source, destination, departure time, arrival time, the number of stops, the layover time, the price, and the number of seats at that price, fare:notprinted, dep_date)
-        # what is currently passed in: flightno1(0), flightno2(1), src(2), dst(3), dep_time(4), arr_time(5), layover(6), numStops(7), fare1(8), fare2(9), price(10), seats(11)        
+        # flightDetails: flightno1(0), flightno2(1), src(2), dst(3), dep_time(4), arr_time(5), layover(6), numStops(7), fare1(8), fare2(9), price(10), seats(11), dep_date(12)       
         flightno = flightDetails[0]
         # flightno2 = flightDetails[1] will be 'None' if no connecting flight
         # numStops and layover will be zero if no connecting flight
         # TODO implement functionality for 
         src = flightDetails[2]
         dst = flightDetails[3]
-        ####dep_date = flightDetails[10]  #### TODO will have to pass this in to the method, because it's not returned in the query
-        price = flightDetails[10] # don't think this is needed for booking
+        # dep_date is in format: datetime.datetime(2015, 12, 13, 13, 0)
+        dep_date = flightDetails[12] 
+        price = flightDetails[10]
         fare = flightDetails[8]
         seat = self.generateSeatNumber()
 
@@ -251,17 +252,15 @@ class UserMenu(object):
             tno = str(tno)
 
             # check if seat is still available by searching for the flights again
-            FLIGHTS_AVAIL = "SELECT * FROM (select flightno1, flightno2, layover, price from ( select flightno1, flightno2, layover, price, row_number() over (order by price asc) rn from (select flightno1, flightno2, layover, price from good_connections where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}' union select flightno flightno1, '' flightno2, 0 layover, price from available_flights where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}'))) WHERE flightno1 = '" + flightno + "'"
-            db.execute(FLIGHTS_AVAIL.format(dep_date, src, dst)) 
-            flights = db.cursor.fetchall()
+            flights = q.searchFlights(src, dst, dep_date)
 
             if len(flights) == 0:
                 print("Sorry, this seat is no longer available. Please try another flight.")
                 self.showMenu()
 
             else: 
-                insertTicket = "INSERT INTO tickets VALUES('" + tno + "', '" + name + "', '" + self.email + "', '" + price + "')"
-                insertBooking = "INSERT INTO bookings VALUES('" + tno + "', '" + flightno + "', '" + fare + "', to_date('" + dep_date + "', 'DD-Mon-YYYY'), '" + seat + "')"
+                insertTicket = "INSERT INTO tickets VALUES('" + tno + "', '" + name + "', '" + self.email + "', '" + str(price) + "')"
+                insertBooking = "INSERT INTO bookings VALUES('" + tno + "', '" + flightno + "', '" + fare + "', to_date('" + dep_date + "', 'DD/MM/YYYY'), '" + seat + "')"
                 try: 
                     db.execute(insertTicket)
                     db.execute("commit")  
