@@ -71,7 +71,7 @@ def getDatabaseDetails():
 def showMainMenu():
     # main screen, ask to login, register or exit
     while True:
-        userStart = input("Login, Register or Exit? ")
+        userStart = input("Login (L), Register (R) or Exit (E)? ")
 
         if (userStart == "login" or userStart == 'L'): 
             login.handleLogin()

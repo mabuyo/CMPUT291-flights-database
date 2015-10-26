@@ -36,7 +36,7 @@ class UserMenu(object):
                 #self.makeABooking(<flight details from flight results>)
                 #insert into sch_flights values ('AC1525',to_date('06-Jul-2015','DD-Mon-YYYY'),to_date('19:35', 'hh24:mi'),to_date('23:27', 'hh24:mi'));
                 #(flight number, source, destination, departure time, arrival time, the number of stops, the layover time, the price, and the number of seats at that price, fare:notprinted, dep_date)
-                self.makeABooking(('AC1525', 'TWF','TSS', '19:35', '23:27', 0, 0, '189', 12, 'X', '06-Jul-2015'))
+                self.makeABooking(('AC1525', 'TWF','TSS', '19:35', '23:27', 0, 0, '189', 12, 'C', '06-Jul-2015'))
             else: print("Pick a valid option. \n")
 
     def searchForFlights(self):
@@ -117,6 +117,8 @@ class UserMenu(object):
     def makeABooking(self, flightDetails):
         #flightDetails = (flight number, source, destination, departure time, arrival time, the number of stops, the layover time, the price, and the number of seats at that price, fare:notprinted, dep_date)
         flightno = flightDetails[0]
+        src = flightDetails[1]
+        dst = flightDetails[2]
         dep_date = flightDetails[10]
         price = flightDetails[7]
         fare = flightDetails[9]
@@ -143,23 +145,28 @@ class UserMenu(object):
             country = self.country
             tno = self.generateTicketNumber()
             tno = str(tno)
-            # check if seat is still available
-            checkSeatsAvail = "SELECT limit FROM flight_fares WHERE flightno = '" + flightno + "' AND limit > 0"
-            db.execute(checkSeatsAvail)
-            seatAvail = db.cursor.fetchall()
-            if len(seatAvail) < 0:
+            # check if seat is still available by searching for the flights again
+            FLIGHTS_AVAIL = "SELECT * FROM (select flightno1, flightno2, layover, price from ( select flightno1, flightno2, layover, price, row_number() over (order by price asc) rn from (select flightno1, flightno2, layover, price from good_connections where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}' union select flightno flightno1, '' flightno2, 0 layover, price from available_flights where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}'))) WHERE flightno1 = '" + flightno + "'"
+            db.execute(FLIGHTS_AVAIL.format(dep_date, src, dst)) 
+            flights = db.cursor.fetchall()
+            if len(flights) == 0:
                 print("Sorry, this seat is no longer available. Please try another flight.")
                 self.showMenu()
             else: 
                 insertTicket = "INSERT INTO tickets VALUES('" + tno + "', '" + name + "', '" + self.email + "', '" + price + "')"
                 insertBooking = "INSERT INTO bookings VALUES('" + tno + "', '" + flightno + "', '" + fare + "', to_date('" + dep_date + "', 'DD-Mon-YYYY'), '" + seat + "')"
-                db.execute(insertTicket)
-                db.execute("commit")  
-                db.execute(insertBooking)
-                db.execute("commit")  
-                print("Your flight has been booked with the ticket number " + tno + ". Returning to main menu...\n")
-            self.showMenu()
-        
+                try: 
+                    db.execute(insertTicket)
+                    db.execute("commit")  
+                    db.execute(insertBooking)
+                    db.execute("commit")  
+                    print("Your flight has been booked with the ticket number " + tno + ". Returning to main menu...\n")
+                except cx_Oracle.DatabaseError as exc:
+                    error = exc.args
+                    print( sys.stderr, "Oracle code:", error.code)
+                    print( sys.stderr, "Oracle message:", error.message)
+                self.showMenu()
+                
 
     def generateTicketNumber(self):
         # get max tno
@@ -173,8 +180,8 @@ class UserMenu(object):
     def generateSeatNumber(self):
         alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
         assignedSeats = main.getAssignedSeats()
-        letterIndex = randint(1, 26)
-        letter = alphabet[letterIndex+1]
+        letterIndex = randint(0, 25)
+        letter = alphabet[letterIndex]
         num = randint(1,9)
         seat = letter + str(num)
         while (seat in assignedSeats):
