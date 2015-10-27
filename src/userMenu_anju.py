@@ -89,6 +89,10 @@ class UserMenu(object):
                     flights = sf.searchFlights(acode_s, acode_d, date, num)
                     if flights:
                         self.printFlightData(flights, mentionPriceSorted=True)
+                        print("")
+                        sort = input("This is currently sorted by price alone.\n"
+                                     "To sort by connections, and then price, enter 'C'.\n"
+                                     "('R' -> Main Menu; 'B' -> Book Flight): ")
                 elif sort == 'C': 
                     flights = sf.searchFlightsSortedByConnections(acode_s, acode_d, date, num)
                     if flights:
@@ -101,7 +105,7 @@ class UserMenu(object):
                     self.bookingOptions(flights, acode_s, acode_d, date)    # go to booking option
                 elif sort == 'R':
                     self.showMenu()
-                else: print("Not a valid option. Please try again: \n ")
+                else: sort = input("Not a valid option. Please try again: \n ")
         else: 
             print("No flights found, Try again.")
 
