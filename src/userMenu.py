@@ -182,11 +182,10 @@ class UserMenu(object):
                 print("Booking departure flight.\n")
                 # add some more flight details to tuple
                 l = list(returnFlights[int(float(rowSelectionReturn))-1])
-                l.append(date)
+                l.append(return_date)
                 returnDetails = tuple(l)
                 twoBookings.append(returnDetails)
                 #self.makeABooking(returnDetails) # return flight
-                print(twoBookings)
                 self.makeABooking(twoBookings, passengerCount, True) # return flight
 
                 print("Booking return flight.\n")
@@ -289,6 +288,7 @@ class UserMenu(object):
             flightDetails = fullFlightDetails[0]
         else: flightDetails = fullFlightDetails
 
+        print(flightDetails)
         # flightDetails: flightno1(0), flightno2(1), src(2), dst(3), dep_time(4), arr_time(5), layover(6), numStops(7), fare1(8), fare2(9), price(10), seats(11), dep_date(12)       
         flightno, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, dep_date = flightDetails
         price = str(price)
