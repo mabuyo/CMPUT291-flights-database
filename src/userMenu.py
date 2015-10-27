@@ -203,7 +203,7 @@ class UserMenu(object):
         else: 
             matching = sf.getMatchingAirports(airport); 
             while True:
-                acode = input("Please select a valid 3-letter airport code from the list and enter it here: ")
+                acode = input("Please select a valid 3-letter airport code from the list and enter it here: ").upper()
                 if acode == "R": self.showMenu()
                 elif acode in matching: return acode
 
@@ -345,7 +345,8 @@ class UserMenu(object):
                 error = exc.args
                 print( sys.stderr, "Oracle code:", error.code)
                 print( sys.stderr, "Oracle message:", error.message)
-            self.showMenu()  
+            if not oneOfMany:
+                self.showMenu()  
 
     def generateTicketNumber(self):
         """

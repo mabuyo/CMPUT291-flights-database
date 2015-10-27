@@ -27,7 +27,7 @@ def getMatchingAirports(userInput):
     db.execute(airport_query.format(userInput.title())) 
     airport_info = db.cursor.fetchall()
     while not airport_info:
-        userInput = input("No airports found. Please check search terms and try again: ")
+        userInput = input("No airports found. Try entering the city or the name of the airport: ")
         db.execute(airport_query.format(userInput.title())) 
         airport_info = db.cursor.fetchall()
     print("")
