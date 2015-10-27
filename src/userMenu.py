@@ -155,8 +155,10 @@ class UserMenu(object):
             l = list(searchResults[int(float(rowSelection)) - 1])
             l.append(date)
             flightDetails = tuple(l)
-            for i in range(passengerCount):
-                self.makeABooking(flightDetails, passengerCount, oneOfMany=True) 
+            for i in range(0,passengerCount):
+                if (i == passengerCount-1):
+                    self.makeABooking(flightDetails, passengerCount, oneOfMany=False)
+                else: self.makeABooking(flightDetails, passengerCount, oneOfMany=True) 
 
         elif tripType == "2":
             return_date = input("Please enter return date in format DD/MM/YYYY.\n")
@@ -298,7 +300,7 @@ class UserMenu(object):
             db.execute("commit")
         else: 
             country = isPassenger[0][2]
-            return user_name
+        return user_name
         
     def makeABooking(self, fullFlightDetails, num=1, roundTrip=False, user_name="",  oneOfMany=False):
         db = main.getDatabase()
@@ -320,12 +322,14 @@ class UserMenu(object):
         if len(flights) == 0:
             print("Sorry, this seat is no longer available. Please try another flight.")
             self.showMenu()
-        if oneOfMany:
-            cheap_flight = sf.getCheapestSpecificFlight(flightDetails)[0]
-            flightno, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats = cheap_flight
-            print("The cheapest fare for your flight choice is ${0}".format(price))
+        
             
         else: 
+            if oneOfMany:
+                cheap_flight = sf.getCheapestSpecificFlight(flightDetails)[0]
+                flightno, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats = cheap_flight
+                print("The cheapest fare for your flight choice is ${0}".format(price))
+
             try: 
                 db.execute(INSERT_TICKET.format(tno, user_name, self.email, price))
                 db.execute(INSERT_BOOKING.format(tno, flightno, fare1, dep_date, seat))

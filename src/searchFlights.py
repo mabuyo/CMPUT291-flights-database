@@ -4,13 +4,13 @@ import cx_Oracle
 
 CLEAR_SEARCH_RESULTS = "delete FROM temp" 
 
-TRIP_QUERY_PARTIES = "INSERT into temp (flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats) select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats from ( select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, row_number() over (order by price asc) rn from (select flightno1, flightno2, src, dst, dep_time, arr_time, layover, 1 numStops, fare1, fare2, price, seats from good_connections where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}' union select flightno, '' flightno2, src, dst, dep_time, arr_time, 0  layover, 0 numStops, fare, '' fare2, price, seats from available_flights where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}') order by price) where seats >= '{3}'"
+TRIP_QUERY_PARTIES = "INSERT into temp (flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats) select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats from ( select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, row_number() over (order by price asc) rn from (select flightno1, flightno2, src, dst, dep_time, arr_time, layover, 1 numStops, fare1, fare2, price, seats from good_connections where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}' union select flightno, '' flightno2, src, dst, dep_time, arr_time, 0  layover, 0 numStops, fare, '' fare2, price, seats from available_flights where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}') order by price)"
 
 TRIP_QUERY_SORT_CONNECTIONS_PARTIES = "select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats from ( select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, row_number() over (order by numStops asc, price asc) rn from (select flightno1, flightno2, src, dst, dep_time, arr_time, layover, 1 numStops, fare1, fare2, price, seats from good_connections where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}' union select flightno, '' flightno2, src, dst, dep_time, arr_time, 0  layover, 0 numStops, fare, '' fare2, price, seats from available_flights where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}') where seats >= {3} order by numStops asc, price asc)"
 
 airport_query = "SELECT *  FROM airports WHERE name LIKE '%{0}%' OR city LIKE '%{0}%'"  
 
-CHEAPEST_SPECIFC_FLIGHT = "SELECT * FROM (SELECT * FROM temp WHERE flightno1='{0}' AND flightno2 {1} AND dep_time = to_date('{2}', 'YYYY-MM-DD HH:MI:SS') ORDER BY price) WHERE rownum = 1"
+CHEAPEST_SPECIFC_FLIGHT = "SELECT * FROM (SELECT * FROM temp WHERE flightno1='{0}' AND flightno2 {1} AND dep_time = to_date('{2}', 'YYYY-MM-DD HH24:MI:SS') ORDER BY price) WHERE rownum = 1"
 
 DISPLAYABLE = "SELECT flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, price, sum(seats) FROM temp GROUP BY  flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, price ORDER BY price ASC"
 DISPLAYABLE_C = "SELECT flightno1, flightno2, src, dst, dep_time, arr_time  , layover, numStops, price, sum(seats) FROM temp GROUP BY  flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, price ORDER BY numStops ASC, price asc"
@@ -40,7 +40,7 @@ def getMatchingAirports(userInput):
 def searchFlights(src, dst, dep_date, groupSize=1, displayable=False):
     db = main.getDatabase()   
     db.execute(CLEAR_SEARCH_RESULTS)
-    db.execute(TRIP_QUERY_PARTIES.format(dep_date, src, dst, groupSize)) 
+    db.execute(TRIP_QUERY_PARTIES.format(dep_date, src, dst)) 
     if displayable: 
         db.execute(DISPLAYABLE) 
     else:
