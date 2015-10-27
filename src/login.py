@@ -5,7 +5,7 @@ From the specification: Registered users should be able to login using a valid e
 
 import getpass 
 import main
-import userMenu_Michelle as userMenu
+import userMenu
 import agentMenu
 
 def handleLogin():

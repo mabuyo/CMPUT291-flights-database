@@ -6,7 +6,7 @@ import searchFlights as sf
 import util_methods as util
 import main
 
-BOOKING_QUERY = "SELECT t.tno, p.name, TO_CHAR(b.dep_date, 'DD-MON-YYYY') as dep_date , t.paid_price FROM users u, passengers p, tickets t, bookings b WHERE u.email = p.email AND p.email = t.email AND t.tno = b.tno AND u.email = '{0}'"
+BOOKING_QUERY = "SELECT t.tno, p.name, TO_CHAR(b.dep_date, 'DD-MON-YYYY') as dep_date , t.paid_price FROM users u, passengers p, tickets t, bookings b WHERE u.email = p.email AND p.email = t.email AND t.tno = b.tno AND u.email = '{0}' AND t.name = p.name AND t.email = p.email"
 
 INSERT_PASSENGER = "INSERT INTO passengers VALUES('{0}', '{1}', '{2}'"
 INSERT_TICKET = "INSERT INTO tickets VALUES('{0}', '{1}', '{2}', '{3}')"
@@ -213,20 +213,33 @@ class UserMenu(object):
         while True:
             ticket_no = input("Enter your ticket number for more details about that booking. R to return to previous menu. \n")
             if ticket_no == "R": self.showMenu()
-            if int(ticket_no) in self.bookings:
-                showDetails = "SELECT tno, flightno, fare, dep_date, seat FROM bookings WHERE tno = " + ticket_no
-                db = main.getDatabase()
-                db.execute(showDetails)
-                details = db.cursor.fetchall()
-                #db.close()
-                for d in details: print(d)  
-                self.detailedBooking(ticket_no)
+            showDetails = "SELECT tno, flightno, fare, dep_date, seat FROM bookings WHERE tno = '" + ticket_no + "'"
+            db = main.getDatabase()
+            db.execute(showDetails)
+            details = db.cursor.fetchall()
+            if details:
+                self.detailedBooking(ticket_no, details)
             else: print("Please enter a valid ticket number. ")
 
-    def detailedBooking(self, tno):
+    def detailedBooking(self, tno, details):
         """
         The details of the booking have been shown, the user can cancel the booking or return to their list of existing bookings. 
         """
+        print("The details for ticket no " + tno + " are: \n")
+
+        # get headings, print details
+        db = main.getDatabase()
+        showDetails = "SELECT tno, flightno, fare, dep_date, seat FROM bookings WHERE tno = '" + tno  + "'"
+        headings = db.cursor.description
+        headingsStr = "( "
+        for h in headings:
+            headingsStr += str(h[0]) + ", "
+        headingsStr = headingsStr.strip(", ")
+        headingsStr += ' )'
+        print(headingsStr) 
+        for d in details: 
+            print(d)  
+        print('\n')
         while True:
             action = input("Cancel this booking (C) or Return to list of existing bookings (R): ")
             if action == "C": 
