@@ -83,6 +83,7 @@ def showMainMenu():
             register.handleRegister()
         elif (userStart == "exit" or userStart == 'E'):
             db = getDatabase()
+            db.cursor.close()
             db.close()  # close the connection when application is exited
             sys.exit("You have logged out of the program.")
         else: print ("Please select one of the options. \n")
