@@ -105,6 +105,7 @@ class UserMenu(object):
                                      "To sort by price only, enter 'P'.\n"
                                      "('R' -> Main Menu; 'B' -> Book Flight): \n")
                 elif sort == 'B':
+                    flights = sf.searchFlights(acode_s, acode_d, date, num, displayable=False)
                     self.bookingOptions(flights, acode_s, acode_d, date, num)    # go to booking option
                 elif sort == 'R':
                     self.showMenu()
@@ -289,7 +290,7 @@ class UserMenu(object):
         else: flightDetails = fullFlightDetails
 
         print(flightDetails)
-        # flightDetails: flightno1(0), flightno2(1), src(2), dst(3), dep_time(4), arr_time(5), layover(6), numStops(7), fare1(8), fare2(9), price(10), seats(11), dep_date(12)       
+        # flightDetails: flightno1(0), flightno2(1), src(2), dst(3), dep_time(4), arr_time(5), layover(6), numStops(7), fare1(8), fare2(9), price(10), seats(11), dep_date(12)
         flightno, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, dep_date = flightDetails
         price = str(price)
         seat = self.generateSeatNumber()
@@ -314,6 +315,7 @@ class UserMenu(object):
 
         if oneOfMany:
             cheapSpecific = sf.getCheapestSpecificFlight(flightDetails)
+        
         # check if seat is still available by searching for the flights again
         flights = sf.searchFlights(src, dst, dep_date, num)
 
@@ -331,7 +333,7 @@ class UserMenu(object):
                    tno2 = str(self.generateTicketNumber())
                    tix = tno + ", " + tno2
                    seat2 = self.generateSeatNumber()
-                   db.execute(INSERT_TICKET.forma   t(tno2, user_name, self.email, price))
+                   db.execute(INSERT_TICKET.format(tno2, user_name, self.email, price))
                    db.execute(INSERT_BOOKING.format(tno2, flightno2, fare2, dep_date, seat))
                    db.execute("commit")
                 print("Your flight has been booked with the ticket number(s): " + tix + ". \n")
