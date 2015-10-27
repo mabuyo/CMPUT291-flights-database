@@ -16,12 +16,17 @@ DISPLAYABLE = "SELECT flightno1, flightno2, src, dst, dep_time, arr_time, layove
 DISPLAYABLE_C = "SELECT flightno1, flightno2, src, dst, dep_time, arr_time  , layover, numStops, price, sum(seats) FROM temp GROUP BY  flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, price ORDER BY numStops ASC, price asc"
 
 def isValidAcode(code):
+    """
+    Checks to see if given airport code is valid by query to database.
+    """
     db = main.getDatabase()
     db.execute('SELECT acode FROM airports') 
     return code.upper() in [code for result in db.cursor.fetchall() for code in result]
 
 def getMatchingAirports(userInput):
-
+    """
+    userInput is taken as text to partial match from airport names and/or airport cities. A list of airports that match (partial) the given input is returned.
+    """
     airport_query = "SELECT *  FROM airports WHERE name LIKE '%{0}%' OR city LIKE '%{0}%'"  
     db = main.getDatabase()
     db.execute(airport_query.format(userInput.title())) 
@@ -38,6 +43,10 @@ def getMatchingAirports(userInput):
 
 
 def searchFlights(src, dst, dep_date, groupSize=1, displayable=False):
+    """
+    The main query for obtaining the flights available.
+    displayable is an atrribute for more easily displaying the data in a readable format as per the specification. When set to False, it returns everything from the temp table. Clearing the temp table is important before re-populating it.
+    """
     db = main.getDatabase()   
     db.execute(CLEAR_SEARCH_RESULTS)
     db.execute(TRIP_QUERY_PARTIES.format(dep_date, src, dst)) 
@@ -46,7 +55,6 @@ def searchFlights(src, dst, dep_date, groupSize=1, displayable=False):
     else:
         db.execute("SELECT * FROM temp ORDER BY PRICE asc") 
     return db.cursor.fetchall()
-
 
 
 def searchFlightsSortedByConnections(src, dst, dep_date, groupSize=1, displayable=False):
@@ -60,17 +68,17 @@ def searchFlightsSortedByConnections(src, dst, dep_date, groupSize=1, displayabl
     return db.cursor.fetchall()
 
 def getCheapestSpecificFlight(flightDetails):
-    
+    """
+    For the implementation of booking for parties larger than one, as per the specifications.
+    """
     flightno, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, dep_date = flightDetails
     db = main.getDatabase()   
 
     if flightno2 == None: flightno2 = "IS NULL"
     else: flightno2 = "= '" + flightno2 + "'"
     
-    print(CHEAPEST_SPECIFC_FLIGHT+'\n')
-    print(CHEAPEST_SPECIFC_FLIGHT.format(flightno, flightno2, dep_time)+'\n')
     db.execute(CHEAPEST_SPECIFC_FLIGHT.format(flightno, flightno2, dep_time)) 
 
     cheap_flights = db.cursor.fetchall() 
-    print(cheap_flights)
+
     return cheap_flights
