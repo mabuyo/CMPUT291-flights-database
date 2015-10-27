@@ -2,7 +2,7 @@ import getpass
 import cx_Oracle
 
 class Database(object):
-    def __init__(self, details):
+    def __init__(self, details=None):
         self.startConnection(details)
         self.cursor = self.connection.cursor()
 
