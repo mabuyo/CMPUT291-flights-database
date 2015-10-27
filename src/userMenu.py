@@ -8,7 +8,7 @@ import main
 
 BOOKING_QUERY = "SELECT t.tno, p.name, TO_CHAR(b.dep_date, 'DD-MON-YYYY') as dep_date , t.paid_price FROM users u, passengers p, tickets t, bookings b WHERE u.email = p.email AND p.email = t.email AND t.tno = b.tno AND u.email = '{0}' AND t.name = p.name AND t.email = p.email"
 
-INSERT_PASSENGER = "INSERT INTO passengers VALUES('{0}', '{1}', '{2}'"
+INSERT_PASSENGER = "INSERT INTO passengers VALUES('{0}', '{1}', '{2}')"
 INSERT_TICKET = "INSERT INTO tickets VALUES('{0}', '{1}', '{2}', '{3}')"
 INSERT_BOOKING = "INSERT INTO bookings VALUES('{0}', '{1}', '{2}', to_date('{3}', 'DD/MM/YYYY'), '{4}')"
 
@@ -155,23 +155,28 @@ class UserMenu(object):
 
             if returnFlights:
                 print ("Here are the return flights that match your query: ")
-                print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats")
+                
+                print("# flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats ")
+                i = 0
                 for f in returnFlights:
-                    print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
+                    i += 1
+                    print(i, f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
                 rowSelectionDepart = input("Please enter row number of departure flight from first table: ")
                 rowSelectionReturn = input("Please enter row number of return flight from second table: ")
 
                 # add some more flight details to tuple
-                l = list(searchResults[int(float(rowSelectionDepart))])
+                l = list(searchResults[int(float(rowSelectionDepart))-1])
                 l.append(date)
                 flightDetails = tuple(l)
                 self.makeABooking(flightDetails)    #departure flight
-
+                print("Booking departure flight.\n")
                 # add some more flight details to tuple
-                l = list(returnFlights[int(float(rowSelectionReturn))])
+                l = list(returnFlights[int(float(rowSelectionReturn))-1])
                 l.append(date)
                 returnDetails = tuple(l)
                 self.makeABooking(returnDetails) # return flight
+                print("Booking return flight.\n")
+
             else: 
                 print("No return flights found, Try again.")
 
@@ -320,7 +325,7 @@ class UserMenu(object):
                error = exc.args
                print( sys.stderr, "Oracle code:", error.code)
                print( sys.stderr, "Oracle message:", error.message)
-           self.showMenu()  
+           #self.showMenu()  
 
     def generateTicketNumber(self):
         """
@@ -355,7 +360,6 @@ class UserMenu(object):
         """
         Cancels selected tno booking.
         """
-
         dBook = "DELETE FROM bookings WHERE tno = " + tno;
         dTix = "DELETE FROM tickets WHERE tno = " + tno;
         db = main.getDatabase()
