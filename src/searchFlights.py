@@ -27,7 +27,7 @@ def getMatchingAirports(userInput):
     db.execute(airport_query.format(userInput.title())) 
     airport_info = db.cursor.fetchall()
     while not airport_info:
-        userInput = input("No airports found. Please check search terms and try again: ")
+        userInput = input("No airports found. Try entering the city or the name of the airport: ")
         db.execute(airport_query.format(userInput.title())) 
         airport_info = db.cursor.fetchall()
     print("")
@@ -60,7 +60,7 @@ def searchFlightsSortedByConnections(src, dst, dep_date, groupSize=1, displayabl
 
 def getCheapestSpecificFlight(flightDetails):
     
-    flightno, flightno2, src, dst, dep_time, arr_time, layover, numStops, price, seats, dep_date = flightDetails
+    flightno, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, dep_date = flightDetails
     db = main.getDatabase()   
     db.execute(CHEAPEST_SPECIFC_FLIGHT.format(flightno, flightno2, dep_time)) 
     return db.cursor.fetchall() 
