@@ -9,11 +9,11 @@ class AgentMenu(userMenu.UserMenu):
         # user menu plus more
         # record a flight departure
         while True:
-            userInput = input("Search for flights (S), List existing bookings (B), Record a flight departure (RD), Record a flight arrival (RA), Logout(L)?  ")
+            userInput = input("Search for flights (S) or List existing bookings (B), Logout (L)?  ")
             if (userInput == "S"):
                 m = input("Would you like to search for multiple passengers? (y/n): ")
-                if m == 'y' or 'Yes' or 'yes':
-                    self.promptAndSearchForFlights(multiple_passengers=True)
+                if m == 'y' or m == 'Yes' or m =='yes':
+                    self.promptAndSearchForFlights(True)
                 else:
                     self.promptAndSearchForFlights()
             elif (userInput == "B"):
@@ -32,7 +32,8 @@ class AgentMenu(userMenu.UserMenu):
             elif (userInput == "L"):
                 self.setLastLogin()
                 main.showMainMenu()
-            else: print("Pick a valid option. \n")
+            else: 
+                print("Pick a valid option. \n")
 
     def findFlight(self):
         #TODO, update the searching for flights maybe???
