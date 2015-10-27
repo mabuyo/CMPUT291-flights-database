@@ -155,7 +155,8 @@ class UserMenu(object):
             l = list(searchResults[int(float(rowSelection)) - 1])
             l.append(date)
             flightDetails = tuple(l)
-            self.makeABooking(flightDetails) 
+            for i in range(passengerCount):
+                self.makeABooking(flightDetails, passengerCount) 
 
         elif tripType == "2":
             return_date = input("Please enter return date in format DD/MM/YYYY.\n")
@@ -291,28 +292,20 @@ class UserMenu(object):
         # flightDetails: flightno1(0), flightno2(1), src(2), dst(3), dep_time(4), arr_time(5), layover(6), numStops(7), fare1(8), fare2(9), price(10), seats(11), dep_date(12)       
         flightno, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, dep_date = flightDetails
         price = str(price)
-        # numStops and layover will be zero if no connecting flight
-        # TODO implement functionality for 
-        # dep_date is in format: datetime.datetime(2015, 12, 13, 13, 0)
         seat = self.generateSeatNumber()
 
-        # get name of user, check if in passengers table
-        user_name = input("Please enter your first and last name: ").title()
+        user_name = input("Enter the first and last name to print on ticket: ").title()
         checkIfPassenger = "SELECT * FROM passengers WHERE email = '{0}' and name = '{1}'".format(self.email, user_name)
         db = main.getDatabase()
         db.execute(checkIfPassenger)
         isPassenger = db.cursor.fetchall()
 
         if len(isPassenger) == 0:    # not in passengers table 
-            # ask for name and country
             country = self.promptForCountry()
 
-            # add to passenger table
             db.execute(INSERT_PASSENGER.format(self.email, user_name, country))
             db.execute("commit")
-            #db.close()
         else: 
-            # already in passenger table
             country = isPassenger[0][2]
             
         tno = str(self.generateTicketNumber())
