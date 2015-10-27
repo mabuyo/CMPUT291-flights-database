@@ -10,7 +10,7 @@ TRIP_QUERY_SORT_CONNECTIONS_PARTIES = "select flightno1, flightno2, src, dst, de
 
 airport_query = "SELECT *  FROM airports WHERE name LIKE '%{0}%' OR city LIKE '%{0}%'"  
 
-CHEAPEST_SPECIFC_FLIGHT = "SELECT * FROM temp WHERE flightno1='{0}' AND flightno2='{1}' AND dep_time = to_date('{2}', 'YYYY-MM-DD HH:MM:SS') AND price = SELECT MIN(price) FROM temp WHERE flightno1='{0}' AND flightno2='{1}' AND dep_time = to_date('{2}', 'YYYY-MM-DD HH:MM:SS')"
+CHEAPEST_SPECIFC_FLIGHT = "SELECT TOP 1 * FROM temp WHERE flightno1='{0}' AND flightno2='{1}' AND dep_time = to_date('{2}', 'YYYY-MM-DD HH:MM:SS') ORDER BY price"
 
 DISPLAYABLE = "SELECT flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, price, sum(seats) FROM temp GROUP BY  flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, price ORDER BY price ASC"
 DISPLAYABLE_C = "SELECT flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, price, sum(seats) FROM temp GROUP BY  flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, price ORDER BY numStops ASC, price asc"
