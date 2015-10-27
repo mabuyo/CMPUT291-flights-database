@@ -33,25 +33,25 @@ def getMatchingAirports(userInput):
     return [airportCode[0] for airportCode in airport_info]
 
 
-def searchFlights(src, dst, dep_date):
+#ef searchFlights(src, dst, dep_date):
 #ensure that the src, dest and dep_date are in the correct format BEFORE calling this method
+#   db = main.getDatabase()   
+#   db.execute(TRIP_QUERY.format(dep_date, src, dst)) 
+#   return db.cursor.fetchall()
+
+#ef sortFlights(src, dst, dep_date):
+#   # sort by number of connections and price
+#   db = main.getDatabase()   
+#   db.execute(TRIP_QUERY_SORT_CONNECTIONS.format(dep_date, src, dst)) 
+#   return db.cursor.fetchall()
+
+def searchFlights(src, dst, dep_date, groupSize=1):
     db = main.getDatabase()   
-    db.execute(TRIP_QUERY.format(dep_date, src, dst)) 
+    db.execute(TRIP_QUERY_PARTIES.format(dep_date, src, dst, groupSize)) 
     return db.cursor.fetchall()
 
-def sortFlights(src, dst, dep_date):
+def searchFlightsSortedByConnections(src, dst, dep_date, groupSize=1):
     # sort by number of connections and price
     db = main.getDatabase()   
-    db.execute(TRIP_QUERY_SORT_CONNECTIONS.format(dep_date, src, dst)) 
-    return db.cursor.fetchall()
-
-def searchFlightsParties(src, dst, dep_date, partyNum):
-    db = main.getDatabase()   
-    db.execute(TRIP_QUERY_PARTIES.format(dep_date, src, dst, partyNum)) 
-    return db.cursor.fetchall()
-
-def sortFlights(src, dst, dep_date, partyNum):
-    # sort by number of connections and price
-    db = main.getDatabase()   
-    db.execute(TRIP_QUERY_SORT_CONNECTIONS_PARTIES.format(dep_date, src, dst, partyNum)) 
+    db.execute(TRIP_QUERY_SORT_CONNECTIONS_PARTIES.format(dep_date, src, dst, groupSize)) 
     return db.cursor.fetchall()
