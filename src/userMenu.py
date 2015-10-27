@@ -92,7 +92,6 @@ class UserMenu(object):
                     flights = sf.searchFlights(acode_s, acode_d, date, num, displayable=True)
                     if flights:
                         self.printFlightData(flights, mentionPriceSorted=True)
-                        printFlightData("")
                         sort = input("This is currently sorted by price alone.\n"
                                      "To sort by connections, and then price, enter 'C'.\n"
                                      "('R' -> Main Menu; 'B' -> Book Flight): ")
@@ -284,18 +283,7 @@ class UserMenu(object):
 
     '''
     
-    def makeABooking(self, fullFlightDetails, num=1, roundTrip=False, user_name="",  oneOfMany=False):
-        if roundTrip == True:
-            flightDetails = fullFlightDetails[0]
-        else: flightDetails = fullFlightDetails
-
-        print(flightDetails)
-        # flightDetails: flightno1(0), flightno2(1), src(2), dst(3), dep_time(4), arr_time(5), layover(6), numStops(7), fare1(8), fare2(9), price(10), seats(11), dep_date(12)
-        flightno, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, dep_date = flightDetails
-        price = str(price)
-        seat = self.generateSeatNumber()
-
-        # get name of user, check if in passengers table
+    def verifyPassenger(self, user_name):
         if user_name == "": 
             user_name = input("Please enter your first and last name: ").title()
         checkIfPassenger = "SELECT * FROM passengers WHERE email = '{0}' and name = '{1}'".format(self.email, user_name)
@@ -310,19 +298,32 @@ class UserMenu(object):
             db.execute("commit")
         else: 
             country = isPassenger[0][2]
-            
+            return user_name
+        
+    def makeABooking(self, fullFlightDetails, num=1, roundTrip=False, user_name="",  oneOfMany=False):
+        db = main.getDatabase()
+        if roundTrip == True:
+            flightDetails = fullFlightDetails[0]
+        else: flightDetails = fullFlightDetails
+
+        flightno, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, dep_date = flightDetails
+        price = str(price)
+        seat = self.generateSeatNumber()
+
+        # get name of user, check if in passengers table
+        user_name = self.verifyPassenger(user_name)
         tno = str(self.generateTicketNumber())
 
-        if oneOfMany:
-            cheapSpecific = sf.getCheapestSpecificFlight(flightDetails)
-        
         # check if seat is still available by searching for the flights again
-        flights = sf.searchFlights(src, dst, dep_date, num)
-
+        flights = sf.searchFlights(src, dst, dep_date, num) #updateing the temp table
         if len(flights) == 0:
             print("Sorry, this seat is no longer available. Please try another flight.")
             self.showMenu()
-
+        if oneOfMany:
+            cheap_flight = sf.getCheapestSpecificFlight(flightDetails)[0]
+            flightno, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats = cheap_flight
+            print("The cheapest fare for your flight choice is ${0}".format(price))
+            
         else: 
             try: 
                 db.execute(INSERT_TICKET.format(tno, user_name, self.email, price))
