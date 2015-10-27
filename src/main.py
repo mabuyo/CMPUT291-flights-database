@@ -92,11 +92,12 @@ def getDatabase():
 
 def setup():
     """
-    This is where any one-time setups go.
+    This is where one-time setups go such as creating views.
     """
-    # read existing assigned seats from table
-    # getAssignedSeats()
     db = getDatabase()
+
+    # TODO: Before submitting, the only lines that should be shown (NOT commented out) are creating the views. Demos should not have them so don't drop them???
+
     #db.execute("drop view available_flights")
     #db.execute(AVAILABLE_FLIGHTS)
     #db.execute("drop view good_connections")    

@@ -329,7 +329,7 @@ class UserMenu(object):
                    tno2 = str(self.generateTicketNumber())
                    tix = tno + ", " + tno2
                    seat2 = self.generateSeatNumber()
-                   db.execute(INSERT_TICKET.format(tno2, user_name, self.email, price))
+                   db.execute(INSERT_TICKET.forma   t(tno2, user_name, self.email, price))
                    db.execute(INSERT_BOOKING.format(tno2, flightno2, fare2, dep_date, seat))
                    db.execute("commit")
                 print("Your flight has been booked with the ticket number(s): " + tix + ". \n")
