@@ -70,6 +70,7 @@ def getCheapestSpecificFlight(flightDetails):
     print(CHEAPEST_SPECIFC_FLIGHT+'\n')
     print(CHEAPEST_SPECIFC_FLIGHT.format(flightno, flightno2, dep_time)+'\n')
     db.execute(CHEAPEST_SPECIFC_FLIGHT.format(flightno, flightno2, dep_time)) 
+
     cheap_flights = db.cursor.fetchall() 
     print(cheap_flights)
     return cheap_flights
