@@ -11,7 +11,11 @@ class AgentMenu(userMenu.UserMenu):
         while True:
             userInput = input("Search for flights (S), List existing bookings (B), Record a flight departure (RD), Record a flight arrival (RA), Logout(L)?  ")
             if (userInput == "S"):
-                self.promptAndSearchForFlights()
+                m = input("Would you like to search for multiple passengers? (y/n): ")
+                if m == 'y' or 'Yes' or 'yes':
+                    self.promptAndSearchForFlights(multiple_passengers=True)
+                else:
+                    self.promptAndSearchForFlights()
             elif (userInput == "B"):
                 self.showExistingBookings()
                 self.promptForBooking()

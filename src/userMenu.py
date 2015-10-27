@@ -24,7 +24,11 @@ class UserMenu(object):
         while True:
             userInput = input("Search for flights (S) or List existing bookings (B), Logout (L)?  ")
             if (userInput == "S"):
-                self.promptAndSearchForFlights()
+                m = input("Would you like to search for multiple passengers? (y/n): ")
+                if m == 'y' or 'Yes' or 'yes':
+                    self.promptAndSearchForFlights(multiple_passengers=True)
+                else:
+                    self.promptAndSearchForFlights()
             elif (userInput == "B"):
                 self.showExistingBookings()
                 self.promptForBooking()
@@ -57,22 +61,26 @@ class UserMenu(object):
         return acode_s, acode_d, date        
 
     
+    def promptNumPassengers(self):
+        num = 0 
+        while num==0:
+            num = input("Input the number of passengers to search for: \n")
+            try:
+                num = int(num)
+                return num 
+            except ValueError:
+                num = input("Please enter a valid number:  \n")
+
     def promptAndSearchForFlights(self, multiple_passengers=False):
         """
         This menu is used to search for flights.
         """
         if multiple_passengers:
-            while num==0:
-                num = input("Input the number of passengers to search for: \n")
-                try:
-                    num = int(num)
-                except ValueError:
-                    num = input("Please enter a valid number:  \n")
+            num = self.promptNumPassengers()
         else:
-            num = 1; 
-
+            num = 1 
         acode_s, acode_d, date = self.promptForFlightDetails()
-        flights = sf.searchFlights(acode_s, acode_d, date)
+        flights = sf.searchFlights(acode_s, acode_d, date, num)
         if flights:
             self.printFlightData(flights, mentionPriceSorted=False)
             print("")
@@ -97,7 +105,7 @@ class UserMenu(object):
                                      "To sort by price only, enter 'P'.\n"
                                      "('R' -> Main Menu; 'B' -> Book Flight): \n")
                 elif sort == 'B':
-                    self.bookingOptions(flights, acode_s, acode_d, date)    # go to booking option
+                    self.bookingOptions(flights, acode_s, acode_d, date, num)    # go to booking option
                 elif sort == 'R':
                     self.showMenu()
                 else: sort = input("Not a valid option. Please try again: \n ")
@@ -131,13 +139,16 @@ class UserMenu(object):
         flightDetails = tuple(l)
         self.makeABooking(flightDetails) 
 
-    def bookingOptions(self, searchResults, acode_s, acode_d, date):
+    def bookingOptions(self, searchResults, acode_s, acode_d, date, passengerCount=1):
         """
         For one-way trip and round trip options.
         """
         # get trip type
-        print("\n")      
-        tripType = input("Book one-way trip (1) or book round-trip (2): ")
+        print("")      
+        if passengerCount == 1:
+            tripType = input("Book one-way trip (1) or book round-trip (2): ")
+        else:
+            tripType = "1"
         if tripType == "1":
             rowSelection = input("Please enter row number of trip you would like to book: ")
             
@@ -154,10 +165,7 @@ class UserMenu(object):
             returnFlights = sf.searchFlights(acode_d, acode_s, return_date) # search for return flights
 
             if returnFlights:
-                print ("Here are the return flights that match your query: ")
-                print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats")
-                for f in returnFlights:
-                    print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
+                self.printFlightData(returnFlights); 
                 rowSelectionDepart = input("Please enter row number of departure flight from first table: ")
                 rowSelectionReturn = input("Please enter row number of return flight from second table: ")
 
@@ -265,7 +273,7 @@ class UserMenu(object):
 
     '''
     
-    def makeABooking(self, flightDetails):
+    def makeABooking(self, flightDetails, num=1):
         # flightDetails: flightno1(0), flightno2(1), src(2), dst(3), dep_time(4), arr_time(5), layover(6), numStops(7), fare1(8), fare2(9), price(10), seats(11), dep_date(12)       
         flightno, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, dep_date = flightDetails
         price = str(price)
@@ -296,7 +304,7 @@ class UserMenu(object):
         tno = str(self.generateTicketNumber())
 
         # check if seat is still available by searching for the flights again
-        flights = sf.searchFlights(src, dst, dep_date)
+        flights = sf.searchFlights(src, dst, dep_date, num)
 
         if len(flights) == 0:
             print("Sorry, this seat is no longer available. Please try another flight.")
