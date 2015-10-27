@@ -1,12 +1,16 @@
 import main
 import pprint
+import cx_Oracle
 
+CLEAR_SEARCH_RESULTS = "drop table temp" 
 
-TRIP_QUERY_PARTIES = "select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, SUM(seats) as seatsLeft from (select flightno1, flightno2, src, dst, dep_time, arr_time, layover, 1 numStops, fare1, fare2, price, seats from good_connections where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}' union select flightno, '' flightno2, src, dst, dep_time, arr_time, 0  layover, 0 numStops, fare, '' fare2, price, seats from available_flights where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}') GROUP BY flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price HAVING SUM(SEATS) >= {3}  ORDER BY PRICE ASC"
+TRIP_QUERY_PARTIES = "INSERT into temp (flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats) select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats from ( select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, row_number() over (order by price asc) rn from (select flightno1, flightno2, src, dst, dep_time, arr_time, layover, 1 numStops, fare1, fare2, price, seats from good_connections where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}' union select flightno, '' flightno2, src, dst, dep_time, arr_time, 0  layover, 0 numStops, fare, '' fare2, price, seats from available_flights where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}') order by price) where seats >= '{3}'"
 
 TRIP_QUERY_SORT_CONNECTIONS_PARTIES = "select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats from ( select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, row_number() over (order by numStops asc, price asc) rn from (select flightno1, flightno2, src, dst, dep_time, arr_time, layover, 1 numStops, fare1, fare2, price, seats from good_connections where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}' union select flightno, '' flightno2, src, dst, dep_time, arr_time, 0  layover, 0 numStops, fare, '' fare2, price, seats from available_flights where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}') where seats >= '{3}' order by numStops asc, price asc)"
 
 airport_query = "SELECT *  FROM airports WHERE name LIKE '%{0}%' OR city LIKE '%{0}%'"  
+
+CHEAPEST_SPECIFC_FLIGHT = "SELECT * FROM temp WHERE flightno1={0} AND flightno2={1} AND dep_time={2} AND price = min(SELECT price FROM temp WHERE flightno1={0} AND flightno2={1} AND dep_time={2})"
 
 def isValidAcode(code):
     db = main.getDatabase()
@@ -32,7 +36,18 @@ def getMatchingAirports(userInput):
 
 def searchFlights(src, dst, dep_date, groupSize=1):
     db = main.getDatabase()   
+    try:
+        print("made temp")
+        db.execute(CLEAR_SEARCH_RESULTS)
+        print("made temp")
+        db.execute("CREATE TABLE temp (flightno1 CHAR(6), flightno2 CHAR(6), src CHAR(3), dst CHAR(3), dep_time DATE, arr_time DATE, layover NUMBER(38), numStops NUMBER(38), fare1 CHAR(2), fare2 CHAR(2), price NUMBER, seats NUMBER)")
+        print("made temp")
+        db.execute("commit")
+    except cx_Oracle.DatabaseError as e:
+        pass 
     db.execute(TRIP_QUERY_PARTIES.format(dep_date, src, dst, groupSize)) 
+    print("made temp2")
+    db.execute("SELECT * FROM temp") 
     return db.cursor.fetchall()
 
 def searchFlightsSortedByConnections(src, dst, dep_date, groupSize=1):
@@ -41,3 +56,9 @@ def searchFlightsSortedByConnections(src, dst, dep_date, groupSize=1):
     db.execute(TRIP_QUERY_SORT_CONNECTIONS_PARTIES.format(dep_date, src, dst, groupSize)) 
     return db.cursor.fetchall()
 
+def getCheapestSpecificFlight(flightDetails):
+    
+    flightno, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, dep_date = flightDetails
+    db = main.getDatabase()   
+    db.execute(CHEAPEST_SPECIFC_FLIGHT.format(flightno, flightno2, dep_time)) 
+    return db.cursor.fetchall() 
