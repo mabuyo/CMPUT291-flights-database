@@ -1,6 +1,7 @@
-import getpass
 import cx_Oracle
+import sys
 
+import getpass
 class Database(object):
     def __init__(self, details):
         self.startConnection(details)
