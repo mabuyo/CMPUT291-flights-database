@@ -92,7 +92,7 @@ class UserMenu(object):
                     flights = sf.searchFlights(acode_s, acode_d, date, num)
                     if flights:
                         self.printFlightData(flights, mentionPriceSorted=True)
-                        print("")
+                        printFlightData("")
                         sort = input("This is currently sorted by price alone.\n"
                                      "To sort by connections, and then price, enter 'C'.\n"
                                      "('R' -> Main Menu; 'B' -> Book Flight): ")
@@ -185,8 +185,8 @@ class UserMenu(object):
                 returnDetails = tuple(l)
                 twoBookings.append(returnDetails)
                 #self.makeABooking(returnDetails) # return flight
-
-                self.makeABooking(twoBookings, None, True) # return flight
+                print(twoBookings)
+                self.makeABooking(twoBookings, passengerCount, True) # return flight
 
                 print("Booking return flight.\n")
 
@@ -283,7 +283,7 @@ class UserMenu(object):
 
     '''
     
-    def makeABooking(self, fullFlightDetails, num=1, roundTrip=False):
+    def makeABooking(self, fullFlightDetails, num=1, roundTrip=False, user_name=""):
         if roundTrip == True:
             flightDetails = fullFlightDetails[0]
         else: flightDetails = fullFlightDetails
@@ -297,7 +297,8 @@ class UserMenu(object):
         seat = self.generateSeatNumber()
 
         # get name of user, check if in passengers table
-        user_name = input("Please enter your first and last name: ").title()
+        if user_name == "": 
+            user_name = input("Please enter your first and last name: ").title()
         checkIfPassenger = "SELECT * FROM passengers WHERE email = '{0}' and name = '{1}'".format(self.email, user_name)
         db = main.getDatabase()
         db.execute(checkIfPassenger)
@@ -339,7 +340,7 @@ class UserMenu(object):
                    db.execute("commit")
                 print("Your flight has been booked with the ticket number(s): " + tix + ". \n")
                 if (roundTrip == True): 
-                    self.makeABooking(fullFlightDetails[1], None, False)  
+                    self.makeABooking(fullFlightDetails[1], num, False, user_name)  
             except cx_Oracle.DatabaseError as exc:
                 error = exc.args
                 print( sys.stderr, "Oracle code:", error.code)
