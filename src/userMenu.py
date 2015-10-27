@@ -156,7 +156,7 @@ class UserMenu(object):
             l.append(date)
             flightDetails = tuple(l)
             for i in range(passengerCount):
-                self.makeABooking(flightDetails, passengerCount) 
+                self.makeABooking(flightDetails, passengerCount, oneOfMany=True) 
 
         elif tripType == "2":
             return_date = input("Please enter return date in format DD/MM/YYYY.\n")
@@ -306,6 +306,7 @@ class UserMenu(object):
             flightDetails = fullFlightDetails[0]
         else: flightDetails = fullFlightDetails
 
+        print(flightDetails)
         flightno, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, dep_date = flightDetails
         price = str(price)
         seat = self.generateSeatNumber()

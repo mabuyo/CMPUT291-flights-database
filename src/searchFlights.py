@@ -10,7 +10,7 @@ TRIP_QUERY_SORT_CONNECTIONS_PARTIES = "select flightno1, flightno2, src, dst, de
 
 airport_query = "SELECT *  FROM airports WHERE name LIKE '%{0}%' OR city LIKE '%{0}%'"  
 
-CHEAPEST_SPECIFC_FLIGHT = "SELECT * FROM temp WHERE flightno1={0} AND flightno2={1} AND dep_time={2} AND price = min(SELECT price FROM temp WHERE flightno1={0} AND flightno2={1} AND dep_time={2})"
+CHEAPEST_SPECIFC_FLIGHT = "SELECT * FROM temp WHERE flightno1='{0}' AND flightno2='{1}' AND dep_time={2} AND price = min(SELECT price FROM temp WHERE flightno1='{0}' AND flightno2='{1}' AND dep_time={2})"
 
 DISPLAYABLE = "SELECT flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, price, sum(seats) FROM temp GROUP BY  flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, price ORDER BY price ASC"
 DISPLAYABLE_C = "SELECT flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, price, sum(seats) FROM temp GROUP BY  flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, price ORDER BY numStops ASC, price asc"
@@ -60,7 +60,7 @@ def searchFlightsSortedByConnections(src, dst, dep_date, groupSize=1, displayabl
 
 def getCheapestSpecificFlight(flightDetails):
     
-    flightno, flightno2, src, dst, dep_time, arr_time, layover, numStops, price, seats, dep_date = flightDetails
+    flightno, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, dep_date = flightDetails
     db = main.getDatabase()   
     db.execute(CHEAPEST_SPECIFC_FLIGHT.format(flightno, flightno2, dep_time)) 
     return db.cursor.fetchall() 
