@@ -1,7 +1,16 @@
-import main
+from random import randint
+import cx_Oracle
+import sys
+
 import searchFlights as sf
 import util_methods as util
-from random import randint
+import main
+
+BOOKING_QUERY = "SELECT t.tno, p.name, TO_CHAR(b.dep_date, 'DD-MON-YYYY') as dep_date , t.paid_price FROM users u, passengers p, tickets t, bookings b WHERE u.email = p.email AND p.email = t.email AND t.tno = b.tno AND u.email = '{0}'"
+
+INSERT_PASSENGER = "INSERT INTO passengers VALUES('{0}', '{1}', '{2}'"
+INSERT_TICKET = "INSERT INTO tickets VALUES('{0}', '{1}', '{2}', '{3}')"
+INSERT_BOOKING = "INSERT INTO bookings VALUES('{0}', '{1}', '{2}', to_date('{3}', 'DD/MM/YYYY'), '{4}')"
 
 class UserMenu(object):
     def __init__(self, email):
@@ -104,9 +113,12 @@ class UserMenu(object):
         else: 
             print ("Here are flights that match your query: ")
         
-        print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats ")
+        print("# flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats ")
+        i = 0
         for f in flights:
-            print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
+            i += 1
+            print(i, f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
+        
     
     def bookParties(self, searchResults, acode_s, acode_d, date):
         """
@@ -125,11 +137,11 @@ class UserMenu(object):
         """
         # get trip type
         print("\n")      
-        tripType = input("Book one-way trip (1) or book round-trip (2).\n")
+        tripType = input("Book one-way trip (1) or book round-trip (2): ")
         if tripType == "1":
-            rowSelection = input("Please enter row number of trip you would like to book.\n")
+            rowSelection = input("Please enter row number of trip you would like to book: ")
             
-            l = list(searchResults[int(float(rowSelection))])
+            l = list(searchResults[int(float(rowSelection)) - 1])
             l.append(date)
             flightDetails = tuple(l)
             self.makeABooking(flightDetails) 
@@ -146,8 +158,8 @@ class UserMenu(object):
                 print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats")
                 for f in returnFlights:
                     print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
-                rowSelectionDepart = input("Please enter row number of departure flight from first table.\n")
-                rowSelectionReturn = input("Please enter row number of return flight from second table.\n")
+                rowSelectionDepart = input("Please enter row number of departure flight from first table: ")
+                rowSelectionReturn = input("Please enter row number of return flight from second table: ")
 
                 # add some more flight details to tuple
                 l = list(searchResults[int(float(rowSelectionDepart))])
@@ -182,9 +194,8 @@ class UserMenu(object):
         """
         This shows the user's existing bookings.
         """
-        searchBookings = "SELECT t.tno, p.name, TO_CHAR(b.dep_date, 'DD-MON-YYYY') as dep_date , t.paid_price FROM users u, passengers p, tickets t, bookings b WHERE u.email = p.email AND p.email = t.email AND t.tno = b.tno AND u.email = '" + self.email + "' AND t.name = p.name AND t.email = p.email"
         db = main.getDatabase()
-        db.execute(searchBookings)
+        db.execute(BOOKING_QUERY.format(self.email))
         booking_results = db.cursor.fetchall()
         if len(booking_results) == 0:
             print("No existing bookings found.")
@@ -243,23 +254,16 @@ class UserMenu(object):
     
     def makeABooking(self, flightDetails):
         # flightDetails: flightno1(0), flightno2(1), src(2), dst(3), dep_time(4), arr_time(5), layover(6), numStops(7), fare1(8), fare2(9), price(10), seats(11), dep_date(12)       
-        flightno = flightDetails[0]
-        flightno2 = flightDetails[1] #will be 'None' if no connecting flight
+        flightno, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, dep_date = flightDetails
+        price = str(price)
         # numStops and layover will be zero if no connecting flight
         # TODO implement functionality for 
-        src = flightDetails[2]
-        dst = flightDetails[3]
         # dep_date is in format: datetime.datetime(2015, 12, 13, 13, 0)
-        dep_date = flightDetails[12] 
-        price = flightDetails[10]
-        fare = flightDetails[8]
-        fare2 = flightDetails[9]
         seat = self.generateSeatNumber()
 
         # get name of user, check if in passengers table
-        user_name = input("Please enter your name.")
-        print(user_name)
-        checkIfPassenger = "SELECT * FROM passengers WHERE email = '" + self.email + "' and name = '" + user_name + "'"
+        user_name = input("Please enter your first and last name: ").title()
+        checkIfPassenger = "SELECT * FROM passengers WHERE email = '{0}' and name = '{1}'".format(self.email, user_name)
         db = main.getDatabase()
         db.execute(checkIfPassenger)
         isPassenger = db.cursor.fetchall()
@@ -269,16 +273,14 @@ class UserMenu(object):
             country = self.promptForCountry()
 
             # add to passenger table
-            addPassenger = "INSERT INTO passengers VALUES('" + self.email + "', '" + user_name + "', '" + country + "')"
-            db.execute(addPassenger)
+            db.execute(INSERT_PASSENGER.format(self.email, self.name, self.country))
             db.execute("commit")
             #db.close()
         else: 
             # already in passenger table
             country = isPassenger[0][2]
             
-        tno = self.generateTicketNumber()
-        tno = str(tno)
+        tno = str(self.generateTicketNumber())
 
         # check if seat is still available by searching for the flights again
         flights = sf.searchFlights(src, dst, dep_date)
@@ -288,32 +290,24 @@ class UserMenu(object):
             self.showMenu()
 
         else: 
-            insertTicket = "INSERT INTO tickets VALUES('" + tno + "', '" + user_name + "', '" + self.email + "', '" + str(price) + "')"
-            insertBooking = "INSERT INTO bookings VALUES('" + tno + "', '" + flightno + "', '" + fare + "', to_date('" + dep_date + "', 'DD/MM/YYYY'), '" + seat + "')"
-            
-            try: 
-                db.execute(insertTicket)
-                db.execute("commit")  
-                db.execute(insertBooking)
-                db.execute("commit")  
-                if (flightno2 != None):
-                    tno2 = self.generateTicketNumber()
-                    tno2 = str(tno2)
-                    seat2 = self.generateSeatNumber()
-                    insertTicket2 = "INSERT INTO tickets VALUES('" + tno2 + "', '" + user_name + "', '" + self.email + "', '" + str(price) + "')"
-                    insertBooking2 = "INSERT INTO bookings VALUES('" + tno + "', '" + flightno2 + "', '" + fare2 + "', to_date('" + dep_date + "', 'DD/MM/YYYY'), '" + seat + "')"
-                    db.execute(insertTicket2)
-                    db.execute("commit")  
-                    db.execute(insertBooking2)
-                    db.execute("commit")  
-                    tix = tno + ", " + tno2
-                tix = tno
-                print("Your flight has been booked with the ticket number(s): " + tix + ". Returning to main menu...\n")
-            except cx_Oracle.DatabaseError as exc:
-                error = exc.args
-                print( sys.stderr, "Oracle code:", error.code)
-                print( sys.stderr, "Oracle message:", error.message)
-            self.showMenu()  
+           try: 
+               db.execute(INSERT_TICKET.format(tno, user_name, self.email, price))
+               db.execute(INSERT_BOOKING.format(tno, flightno, fare1, dep_date, seat))
+               db.execute("commit")  
+               tix = tno
+               if (flightno2 != None):
+                   tno2 = str(self.generateTicketNumber())
+                   tix = tno + ", " + tno2
+                   seat2 = self.generateSeatNumber()
+                   db.execute(INSERT_TICKET.format(tno2, user_name, self.email, price))
+                   db.execute(INSERT_BOOKING.format(tno2, flightno2, fare2, dep_date, seat))
+                   db.execute("commit")  
+               print("Your flight has been booked with the ticket number(s): " + tix + ". Returning to main menu...\n")
+           except cx_Oracle.DatabaseError as exc:
+               error = exc.args
+               print( sys.stderr, "Oracle code:", error.code)
+               print( sys.stderr, "Oracle message:", error.message)
+           self.showMenu()  
 
     def generateTicketNumber(self):
         """
