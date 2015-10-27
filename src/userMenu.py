@@ -38,126 +38,89 @@ class UserMenu(object):
             else: 
                 print("Pick a valid option. \n")
     
-    def searchForFlights(self, acode_s=None, acode_d=None, date=None):
+
+    def promptForFlightDetails(self, acode_s=None, acode_d=None, date=None):
+        if not acode_s: acode_s = ""
+        if not acode_d: acode_d = ""
+        if not date: date = ""
+        while set([acode_s, acode_d, date]).intersection([""]):
+            if acode_s == "":
+                src = input("Enter the source airport ('R' for previous menu): ")
+                if src == 'R': self.showMenu()
+                acode_s = self.getAcode(src) 
+            
+            if acode_d == "":
+                dst = input("Enter the destination airport ('R' to re-enter src): ")
+                if dst == 'R': self.promptForFlightDetails()
+                acode_d = self.getAcode(dst) 
+
+            if date == "":
+                date = input("Enter the date of travel in format DD/MM/YYYY ('R' to re-enter dst): ")
+                if dst == 'R': self.promptForFlightDetails(acode_s=acode_s)
+                if not util.validate(date):
+                    date = input("Invalid date. Try again ('R' for previous menu): ")
+        return acode_s, acode_d, date        
+
+    
+    def promptAndSearchForFlights(self, multiple_passengers=False):
         """
         This menu is used to search for flights.
         """
-        if not acode_s: acode_s = ""
-        if not acode_d: acode_d = ""
-        if not date: date = ""
-        passengers = input("Input the number of passengers to go to Extra Task: More than one passenger. Else, press Enter. \n")
-        if len(passengers) > 0: self.searchForParties(acode_s, acode_d, date, passengers)
-        while set([acode_s, acode_d, date]).intersection([""]):
-            if acode_s == "":
-                src = input("Enter the source airport ('R' for previous menu): ")
-                if src == 'R': self.showMenu()
-                acode_s = self.getAcode(src) 
-            
-            if acode_d == "":
-                dst = input("Enter the destination airport ('R' to re-enter src): ")
-                if dst == 'R': self.searchForFlights()
-                acode_d = self.getAcode(dst) 
+        if multiple_passengers:
+            while num==0:
+                num = input("Input the number of passengers to search for: \n")
+                try:
+                    num = int(num)
+                except ValueError:
+                    num = input("Please enter a valid number:  \n")
+        else:
+            num = 1; 
 
-            if date == "":
-                date = input("Enter the date of travel in format DD/MM/YYYY ('R' to re-enter dst): ")
-                if dst == 'R': self.searchForFlights(acode_s=acode_s)
-                if not util.validate(date):
-                    date = input("Try again ('R' for previous menu): ")
-        
+        acode_s, acode_d, date = self.promptForFlightDetails()
         flights = sf.searchFlights(acode_s, acode_d, date)
-        sortType  = 'price'
         if flights:
-            print ("Here are flights that match your query: ")
-            print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats ")
-            for f in flights:
-                print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
+            self.printFlightData(flights, mentionPriceSorted=False)
+            print("")
+            sort = input("This is currently sorted by price alone.\n"
+                         "To sort by connections, and then price, enter 'C'.\n"
+                         "('R' -> Main Menu; 'B' -> Book Flight): ")
             while True:
-                if sortType == 'price': sortText = 'connections'
-                else: sortText = 'price'
-                sort = input("Sort by " + sortText + " (S) or choose booking options. R to return to main menu.")
-                if sort == 'S':
-                    if sortType == 'price':  #default
-                        flights = sf.searchFlights(acode_s, acode_d, date)
-                        if flights:
-                            print ("Sorted by connections: ")
-                            print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats ")
-                            for f in flights:
-                                print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
-                            sortType = 'price'
-                    else: 
-                        flights = sf.sortFlights(acode_s, acode_d, date)
-                        if flights:
-                            print ("Sorted by connections: ")
-                            print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats ")
-                            for f in flights:
-                                print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
-                            sortType = 'connections'
+                if sort == 'P':
+                    flights = sf.searchFlights(acode_s, acode_d, date, num)
+                    if flights:
+                        self.printFlightData(flights, mentionPriceSorted=True)
+                        print("")
+                        sort = input("This is currently sorted by price alone.\n"
+                                     "To sort by connections, and then price, enter 'C'.\n"
+                                     "('R' -> Main Menu; 'B' -> Book Flight): ")
+                elif sort == 'C': 
+                    flights = sf.searchFlightsSortedByConnections(acode_s, acode_d, date, num)
+                    if flights:
+                        self.printFlightData(flights, mentionConnectionSorted=True)
+                        print("")
+                        sort = input("This is currently sorted by connections, then price.\n"
+                                     "To sort by price only, enter 'P'.\n"
+                                     "('R' -> Main Menu; 'B' -> Book Flight): \n")
                 elif sort == 'B':
                     self.bookingOptions(flights, acode_s, acode_d, date)    # go to booking option
                 elif sort == 'R':
                     self.showMenu()
-                else: print("Not a valid option. Please try again.\n ")
+                else: sort = input("Not a valid option. Please try again: \n ")
         else: 
             print("No flights found, Try again.")
 
-
-    def searchForParties(self, acode_s=None, acode_d=None, date=None, passengers=1):
-        if not acode_s: acode_s = ""
-        if not acode_d: acode_d = ""
-        if not date: date = ""
-        while set([acode_s, acode_d, date]).intersection([""]):
-            if acode_s == "":
-                src = input("Enter the source airport ('R' for previous menu): ")
-                if src == 'R': self.showMenu()
-                acode_s = self.getAcode(src) 
-            
-            if acode_d == "":
-                dst = input("Enter the destination airport ('R' to re-enter src): ")
-                if dst == 'R': self.searchForFlights()
-                acode_d = self.getAcode(dst) 
-
-            if date == "":
-                date = input("Enter the date of travel in format DD/MM/YYYY ('R' to re-enter dst): ")
-                if dst == 'R': self.searchForFlights(acode_s=acode_s)
-                if not util.validate(date):
-                    date = input("Try again ('R' for previous menu): ")
+    
+    def printFlightData(self, flights, mentionPriceSorted=False, mentionConnectionSorted=False):
+        if mentionPriceSorted:
+            print ("Sorted by price: ")
+        elif mentionConnectionSorted:
+            print ("Sorted by connections: ")
+        else: 
+            print ("Here are flights that match your query: ")
         
-        flights = sf.searchFlightsParties(acode_s, acode_d, date, passengers)
-        sortType  = 'price'
-        if flights:
-            print ("Here are flights that match your query: ")
-            print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats ")
-            for f in flights:
-                print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
-            while True:
-                if sortType == 'price': sortText = 'connections'
-                else: sortText = 'price'
-                sort = input("Sort by " + sortText + " (S) or choose booking options. R to return to main menu.")
-                if sort == 'S':
-                    if sortType == 'price':  #default
-                        flights = sf.searchFlightsParties(acode_s, acode_d, date, passengers)
-                        if flights:
-                            print ("Sorted by connections: ")
-                            print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats ")
-                            for f in flights:
-                                print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
-                            sortType = 'price'
-                    else: 
-                        flights = sf.sortFlightsParties(acode_s, acode_d, date)
-                        if flights:
-                            print ("Sorted by connections: ")
-                            print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats ")
-                            for f in flights:
-                                print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
-                            sortType = 'connections'
-                elif sort == 'B':
-                    self.bookingOptions(flights, acode_s, acode_d, date)    # go to booking option
-                elif sort == 'R':
-                    self.showMenu()
-                else: print("Not a valid option. Please try again.\n ")
-        else: 
-            print("No flights found, Try again.")
-
+        print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats ")
+        for f in flights:
+            print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
     def bookParties(self, searchResults, acode_s, acode_d, date):
         """
         For booking parties more than one passenger.
