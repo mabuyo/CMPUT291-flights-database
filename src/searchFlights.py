@@ -2,7 +2,7 @@ import main
 import pprint
 import cx_Oracle
 
-CLEAR_SEARCH_RESULTS = "delete * FROM temp" 
+CLEAR_SEARCH_RESULTS = "delete FROM temp" 
 
 TRIP_QUERY_PARTIES = "INSERT into temp (flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats) select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats from ( select flightno1, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, row_number() over (order by price asc) rn from (select flightno1, flightno2, src, dst, dep_time, arr_time, layover, 1 numStops, fare1, fare2, price, seats from good_connections where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}' union select flightno, '' flightno2, src, dst, dep_time, arr_time, 0  layover, 0 numStops, fare, '' fare2, price, seats from available_flights where to_char(dep_date,'DD/MM/YYYY')='{0}' and src='{1}' and dst='{2}') order by price) where seats >= '{3}'"
 
@@ -39,6 +39,7 @@ def getMatchingAirports(userInput):
 
 def searchFlights(src, dst, dep_date, groupSize=1, displayable=False):
     db = main.getDatabase()   
+    db.execute(CLEAR_SEARCH_RESULTS)
     db.execute(TRIP_QUERY_PARTIES.format(dep_date, src, dst, groupSize)) 
     if displayable: 
         db.execute(DISPLAYABLE) 
