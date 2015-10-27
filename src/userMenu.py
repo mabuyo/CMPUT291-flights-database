@@ -15,7 +15,7 @@ class UserMenu(object):
         while True:
             userInput = input("Search for flights (S) or List existing bookings (B), Logout (L)?  ")
             if (userInput == "S"):
-                self.searchForFlights()
+                self.promptAndSearchForFlights()
             elif (userInput == "B"):
                 self.showExistingBookings()
                 self.promptForBooking()
@@ -288,7 +288,7 @@ class UserMenu(object):
             self.showMenu()
 
         else: 
-            insertTicket = "INSERT INTO tickets VALUES('" + tno + "', '" + name + "', '" + self.email + "', '" + str(price) + "')"
+            insertTicket = "INSERT INTO tickets VALUES('" + tno + "', '" + user_name + "', '" + self.email + "', '" + str(price) + "')"
             insertBooking = "INSERT INTO bookings VALUES('" + tno + "', '" + flightno + "', '" + fare + "', to_date('" + dep_date + "', 'DD/MM/YYYY'), '" + seat + "')"
             
             try: 
@@ -300,7 +300,7 @@ class UserMenu(object):
                     tno2 = self.generateTicketNumber()
                     tno2 = str(tno2)
                     seat2 = self.generateSeatNumber()
-                    insertTicket2 = "INSERT INTO tickets VALUES('" + tno2 + "', '" + name + "', '" + self.email + "', '" + str(price) + "')"
+                    insertTicket2 = "INSERT INTO tickets VALUES('" + tno2 + "', '" + user_name + "', '" + self.email + "', '" + str(price) + "')"
                     insertBooking2 = "INSERT INTO bookings VALUES('" + tno + "', '" + flightno2 + "', '" + fare2 + "', to_date('" + dep_date + "', 'DD/MM/YYYY'), '" + seat + "')"
                     db.execute(insertTicket2)
                     db.execute("commit")  
