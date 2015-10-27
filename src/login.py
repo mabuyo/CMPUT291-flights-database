@@ -21,13 +21,14 @@ def handleLogin():
     db = main.getDatabase()
     db.execute(checkIfUserExists)
     user_results = db.cursor.fetchall()
+
     if len(user_results) > 0: # user exists!
         db.execute(checkIfAgent)
         agent_results = db.cursor.fetchall()
         if len(agent_results) > 0:
-             menu = agentMenu.AgentMenu(user_email)
+             menu = agentMenu.AgentMenu(user_email) # agents should lead to agent menu
         else:
-            menu = userMenu.UserMenu(user_email)
+            menu = userMenu.UserMenu(user_email)    # normal users go to user menu
         menu.showMenu()
     else: 
         print("User does not exist or password is incorrect.")
