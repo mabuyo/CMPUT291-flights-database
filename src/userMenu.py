@@ -362,7 +362,7 @@ class UserMenu(object):
         Generates seat number by random and does not assign already taken seats, regardless of flightno (TA Kriti suggested this to avoid complications). We realize that in the forums, Prof said to set to NULL because it was not important but we made this design decision before the post.
         """
         alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
-        assignedSeats = main.getAssignedSeats()
+        assignedSeats = self.getAssignedSeats()
         letterIndex = randint(0, 25)
         letter = alphabet[letterIndex]
         num = randint(1,9)
@@ -405,5 +405,12 @@ class UserMenu(object):
             country = input("Please enter your country: ")
             if len(country) > 0: return country    
 
+    def getAssignedSeats(self):
+        getSeats = "SELECT DISTINCT seat from bookings"
+        db = main.getDatabase()
+        db.execute(getSeats)
+        seats = db.cursor.fetchall()
+        assignedSeats = [s[0] for s in seats]
+        return assignedSeats
 
 

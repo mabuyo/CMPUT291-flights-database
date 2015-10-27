@@ -13,6 +13,7 @@ AVAILABLE_FLIGHTS = "create view available_flights(flightno,dep_date, src,dst,de
 GOOD_CONNECTIONS_VIEW = "create view good_connections (src,dst,dep_date,flightno1,flightno2, layover,price, dep_time, arr_time, fare1, fare2, seats) as SELECT DISTINCT ff.src, ff.dst, ff.dep_date, ff.no1, ff.no2, ff.layover, ff.price, ff.dep_time, ff.arr_time, a3.fare, a4.fare, least(a3.seats, a4.seats)  FROM(select a1.src, a2.dst, a1.dep_date, a1.flightno AS no1, a2.flightno AS no2, a2.dep_time-a1.arr_time as layover, min(a1.price+a2.price) AS price, a1.dep_time, a2.arr_time, a2.dep_date as date2 from available_flights a1, available_flights a2 where a1.dst=a2.src and a1.arr_time +1.5/24 <=a2.dep_time and a1.arr_time +5/24>=a2.dep_time group by a1.src, a2.dst, a1.dep_date, a1.flightno, a2.flightno, a2.dep_time, a1.arr_time, a1.dep_time, a2.arr_time, a2.dep_date) ff, available_flights a3, available_flights a4 WHERE a3.dep_date = ff.dep_date and a3.flightno = ff.no1 AND a4.flightno = ff.no2 AND a4.dep_date = ff.date2 AND a3.dep_time = ff.dep_time AND a4.arr_time = ff.arr_time"
 
 TEMP_CREATION = "CREATE TABLE temp (flightno1 CHAR(6), flightno2 CHAR(6), src CHAR(3), dst CHAR(3), dep_time DATE, arr_time DATE, layover NUMBER(38), numStops NUMBER(38), fare1 CHAR(2), fare2 CHAR(2), price NUMBER, seats NUMBER)"
+
 CLEAR_SEARCH_RESULTS = "delete * FROM temp" 
 
 def executeScriptsFromFile(create_file, populate_file):
@@ -99,37 +100,21 @@ def setup():
     This is where one-time setups go such as creating views.
     """
     db = getDatabase()
-    # TODO: Before submitting, the only lines that should be shown (NOT commented out) are creating the views. Demos should not have them so don't drop them???
     try:
-        #db.execute(CLEAR_SEARCH_RESULTS)
-        db.execute(TEMP_CREATION)
-        #db.execute("drop view available_flights")
-        #db.execute("drop view good_connections")    
-        #db.execute(AVAILABLE_FLIGHTS)
-        #db.execute(GOOD_CONNECTIONS_VIEW)
+        db.execute(TEMP_CREATION)  
+        db.execute(AVAILABLE_FLIGHTS)
+        db.execute(GOOD_CONNECTIONS_VIEW)
         db.execute("commit")
     except cx_Oracle.DatabaseError as e:
         pass 
-   
-def getAssignedSeats():
-    getSeats = "SELECT DISTINCT seat from bookings"
-    db = getDatabase()
-    db.execute(getSeats)
-    seats = db.cursor.fetchall()
-    assignedSeats = [s[0] for s in seats]
-    return assignedSeats
 
-def main():
-    # TODO: take this out before submitting!!! this is solely for testing purposes
-    # executeScriptsFromFile('../res/prj_tables.sql', '../res/a2-data.sql')                    
+def main():                  
     setup()
     showMainMenu()
-
 
 # database connection will be global    
 db_input = getDatabaseDetails()
 db = database.Database(db_input)
-
 
 if __name__ == "__main__":
     main()
