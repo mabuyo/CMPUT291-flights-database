@@ -21,7 +21,6 @@ class Database(object):
             print( sys.stderr, "Oracle code:", error.code)
             print( sys.stderr, "Oracle message:", error.message)
 
-
     def execute(self, query):
         """
         Executes the SQL query
