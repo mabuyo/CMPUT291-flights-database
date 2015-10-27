@@ -39,6 +39,9 @@ class UserMenu(object):
                 print("Pick a valid option. \n")
 
     def promptForFlightDetails(self, acode_s=None, acode_d=None, date=None):
+        """
+        Handles user input for source, destination and departure date for searching flights.
+        """
         if not acode_s: acode_s = ""
         if not acode_d: acode_d = ""
         if not date: date = ""
@@ -62,8 +65,11 @@ class UserMenu(object):
 
     
     def promptNumPassengers(self):
+        """
+        For implementation of extra functionality: booking for parties greater than 1. Only called when user inputs yes in showMenu() for searching for multiple passengers.
+        """
         num = 0 
-        while num==0:
+        while num == 0:
             num = input("Input the number of passengers to search for: \n")
             try:
                 num = int(num)
@@ -73,14 +79,19 @@ class UserMenu(object):
 
     def promptAndSearchForFlights(self, multiple_passengers=False):
         """
-        This menu is used to search for flights.
+        This menu is mainly used to handle sorting for flights. It calls promptForFlightDetails to get user input. It calls searchFlights to access the database and fetch the results for the search. From here, the user can sort by price or by connections (with price as a tie breaker) or access the booking options.
+
+        It also implements round trips as per the extra functionality in the specifications, accessed through user input.
         """
         if multiple_passengers == True:
             num = self.promptNumPassengers()
         else:
             num = 1 
+
         acode_s, acode_d, date = self.promptForFlightDetails()
+
         flights = sf.searchFlights(acode_s, acode_d, date, num, displayable=True)
+
         if flights:
             self.printFlightData(flights, mentionPriceSorted=False)
             print("")
@@ -114,6 +125,9 @@ class UserMenu(object):
 
     
     def printFlightData(self, flights, mentionPriceSorted=False, mentionConnectionSorted=False):
+        """
+        This is a helper function that prints flight details in a tabular format.
+        """
         if mentionPriceSorted:
             print ("Sorted by price: ")
         elif mentionConnectionSorted:
@@ -126,18 +140,7 @@ class UserMenu(object):
         for f in flights:
             i += 1
             print(i, f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[8], f[9])
-        
-    
-    def bookParties(self, searchResults, acode_s, acode_d, date):
-        """
-        For booking parties more than one passenger.
-        """
-        passengers = input("Please enter the number of passengers.\n")
-            
-        l = list(searchResults[int(float(rowSelection))])
-        l.append(date)
-        flightDetails = tuple(l)
-        self.makeABooking(flightDetails) 
+
 
     def bookingOptions(self, searchResults, acode_s, acode_d, date, passengerCount=1):
         """
@@ -145,21 +148,26 @@ class UserMenu(object):
         """
         # get trip type
         print("")      
-        if passengerCount == 1:
+        if passengerCount == 1: # default setting
             tripType = input("Book one-way trip (1) or book round-trip (2): ")
         else:
             tripType = "1"
+
+        # One way trip
         if tripType == "1":
             rowSelection = input("Please enter row number of trip you would like to book: ")
             
             l = list(searchResults[int(float(rowSelection)) - 1])
             l.append(date)
             flightDetails = tuple(l)
+
+            # make a booking for each passenger
             for i in range(0,passengerCount):
-                if (i == passengerCount-1):
+                if (i == passengerCount-1): # the last passenger
                     self.makeABooking(flightDetails, passengerCount, oneOfMany=False)
                 else: self.makeABooking(flightDetails, passengerCount, oneOfMany=True) 
 
+        # Round trip
         elif tripType == "2":
             return_date = input("Please enter return date in format DD/MM/YYYY.\n")
             if not util.validate(return_date): # date is invalid. let's you try twice, then shows you the list of availble flights
@@ -180,22 +188,16 @@ class UserMenu(object):
                 l.append(date)
                 flightDetails = tuple(l)
                 twoBookings.append(flightDetails)
-                #self.makeABooking(flightDetails)    #departure flight
-                print("Booking departure flight.\n")
-                # add some more flight details to tuple
                 l = list(returnFlights[int(float(rowSelectionReturn))-1])
                 l.append(return_date)
                 returnDetails = tuple(l)
                 twoBookings.append(returnDetails)
-                #self.makeABooking(returnDetails) # return flight
-                self.makeABooking(twoBookings, passengerCount, True) # return flight
 
-                print("Booking return flight.\n")
-
+                self.makeABooking(twoBookings, passengerCount, roundTrip=True) # Round trips are handled differently for bookings!
             else: 
                 print("No return flights found, Try again.")
 
-        else: # did not pick 1 or 2
+        else: # did not pick 1 or 2, prompt again
             self.bookingOptions(searchResults, acode_s, acode_d, date)
 
     def getAcode(self, airport):
@@ -209,10 +211,9 @@ class UserMenu(object):
                 if acode == "R": self.showMenu()
                 elif acode in matching: return acode
 
-
     def showExistingBookings(self):
         """
-        This shows the user's existing bookings.
+        This shows the user's existing bookings. The UserMenu class has self.bookings in order to facilitate this function easier.
         """
         db = main.getDatabase()
         db.execute(BOOKING_QUERY.format(self.email))
@@ -260,6 +261,7 @@ class UserMenu(object):
         for d in details: 
             print(d)  
         print('\n')
+
         while True:
             action = input("Cancel this booking (C) or Return to list of existing bookings (R): ")
             if action == "C": 
@@ -268,24 +270,11 @@ class UserMenu(object):
                 self.showExistingBookings()
                 self.promptForBooking()
             else: print("Please enter a valid input. ")
-
-
-    '''
-    example booking:
-    src: wrl
-    dst: mls
-    13/12/2015
-
-    return
-    mls--> wrl
-    08/08/2015
-    '''
-
-    ''' example for connections sorting
-
-    '''
     
     def verifyPassenger(self, user_name):
+        """
+        Verify if user_name is in passenger table.
+        """
         if user_name == "": 
             user_name = input("Please enter your first and last name: ").title()
         checkIfPassenger = "SELECT * FROM passengers WHERE email = '{0}' and name = '{1}'".format(self.email, user_name)
@@ -303,12 +292,15 @@ class UserMenu(object):
         return user_name
         
     def makeABooking(self, fullFlightDetails, num=1, roundTrip=False, user_name="",  oneOfMany=False):
+
+        """
+        Handles booking of flights. Default handles the core functionality as per specifications however, extra functionality is also handled in makeABooking for round trips and parties with size larger than one.
+        """
         db = main.getDatabase()
         if roundTrip == True:
             flightDetails = fullFlightDetails[0]
         else: flightDetails = fullFlightDetails
 
-        print(flightDetails)
         flightno, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats, dep_date = flightDetails
         price = str(price)
         seat = self.generateSeatNumber()
@@ -318,24 +310,26 @@ class UserMenu(object):
         tno = str(self.generateTicketNumber())
 
         # check if seat is still available by searching for the flights again
-        flights = sf.searchFlights(src, dst, dep_date, num) #updateing the temp table
+        flights = sf.searchFlights(src, dst, dep_date, num) 
+
         if len(flights) == 0:
             print("Sorry, this seat is no longer available. Please try another flight.")
             self.showMenu()
-        
-            
+                  
         else: 
+            # parties larger than one will go through this, as per the specifications
             if oneOfMany:
                 cheap_flight = sf.getCheapestSpecificFlight(flightDetails)[0]
                 flightno, flightno2, src, dst, dep_time, arr_time, layover, numStops, fare1, fare2, price, seats = cheap_flight
                 print("The cheapest fare for your flight choice is ${0}".format(price))
 
             try: 
+                # executing queries
                 db.execute(INSERT_TICKET.format(tno, user_name, self.email, price))
                 db.execute(INSERT_BOOKING.format(tno, flightno, fare1, dep_date, seat))
                 db.execute("commit")  
-                tix = tno
-                if (flightno2 != None):
+                tix = tno   # for printing purposes
+                if (flightno2 != None): # connecting flight, need two bookings
                    tno2 = str(self.generateTicketNumber())
                    tix = tno + ", " + tno2
                    seat2 = self.generateSeatNumber()
@@ -343,20 +337,19 @@ class UserMenu(object):
                    db.execute(INSERT_BOOKING.format(tno2, flightno2, fare2, dep_date, seat))
                    db.execute("commit")
                 print("Your flight has been booked with the ticket number(s): " + tix + ". \n")
-                if (roundTrip == True): 
+                if (roundTrip == True): # round trips will make another booking, user_name was already given
                     self.makeABooking(fullFlightDetails[1], num, False, user_name)  
             except cx_Oracle.DatabaseError as exc:
                 error = exc.args
                 print( sys.stderr, "Oracle code:", error.code)
                 print( sys.stderr, "Oracle message:", error.message)
-            if not oneOfMany:
+            if not oneOfMany: # go back to main menu
                 self.showMenu()  
 
     def generateTicketNumber(self):
         """
         Generates a ticket number by getting the max ticket number from the tickets table and incrementing by one.
         """
-        # get max tno
         findMaxTno = "SELECT MAX(tno) FROM tickets"
         db = main.getDatabase()
         db.execute(findMaxTno)
@@ -366,7 +359,7 @@ class UserMenu(object):
 
     def generateSeatNumber(self):
         """
-        Generates seat number by random and does not assign already taken seats, regardless of flightno (TA Kriti suggested this to avoid complications)
+        Generates seat number by random and does not assign already taken seats, regardless of flightno (TA Kriti suggested this to avoid complications). We realize that in the forums, Prof said to set to NULL because it was not important but we made this design decision before the post.
         """
         alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
         assignedSeats = main.getAssignedSeats()
@@ -383,7 +376,7 @@ class UserMenu(object):
 
     def cancelBooking(self, tno):
         """
-        Cancels selected tno booking.
+        Cancels selected tno. Called when user lists existing bookings and selects a booking for more details.
         """
         dBook = "DELETE FROM bookings WHERE tno = " + tno;
         dTix = "DELETE FROM tickets WHERE tno = " + tno;
@@ -396,7 +389,7 @@ class UserMenu(object):
 
     def setLastLogin(self):
         """
-        Logs out the user and updates last_login
+        Logs out the user and updates last_login.
         """
         logout = "UPDATE users SET last_login = SYSDATE " + "WHERE email = '" + self.email + "'"
         db = main.getDatabase()
