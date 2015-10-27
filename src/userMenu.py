@@ -7,19 +7,6 @@ class UserMenu(object):
     def __init__(self, email):
         self.email = email
         self.bookings = []
-        self.getUserDetails()
-
-    def getUserDetails(self):
-        """
-        Gets name and country if user already exists in passengers.
-        """
-        getDetails = "SELECT p.name, p.country FROM passengers p, users u WHERE p.email = '" + self.email + "'"
-        db = main.getDatabase()
-        db.execute(getDetails)
-        details = db.cursor.fetchall()
-        if len(details) > 0: 
-            self.name = details[0][0]
-            self.country = details[0][1]
 
     def showMenu(self):
         """
@@ -37,7 +24,6 @@ class UserMenu(object):
                 main.showMainMenu()
             else: 
                 print("Pick a valid option. \n")
-    
 
     def promptForFlightDetails(self, acode_s=None, acode_d=None, date=None):
         if not acode_s: acode_s = ""
@@ -121,6 +107,7 @@ class UserMenu(object):
         print("flightno1  flightno2  SRC  DST  dep_time  arr_time  layover  numStops  price  seats ")
         for f in flights:
             print(f[0], f[1], f[2], f[3], str(f[4]), str(f[5]), f[6], f[7], f[10], f[11])
+    
     def bookParties(self, searchResults, acode_s, acode_d, date):
         """
         For booking parties more than one passenger.
@@ -195,7 +182,7 @@ class UserMenu(object):
         """
         This shows the user's existing bookings.
         """
-        searchBookings = "SELECT t.tno, p.name, TO_CHAR(b.dep_date, 'DD-MON-YYYY') as dep_date , t.paid_price FROM users u, passengers p, tickets t, bookings b WHERE u.email = p.email AND p.email = t.email AND t.tno = b.tno AND u.email = '" + self.email + "'"
+        searchBookings = "SELECT t.tno, p.name, TO_CHAR(b.dep_date, 'DD-MON-YYYY') as dep_date , t.paid_price FROM users u, passengers p, tickets t, bookings b WHERE u.email = p.email AND p.email = t.email AND t.tno = b.tno AND u.email = '" + self.email + "' AND t.name = p.name AND t.email = p.email"
         db = main.getDatabase()
         db.execute(searchBookings)
         booking_results = db.cursor.fetchall()
@@ -270,61 +257,63 @@ class UserMenu(object):
         seat = self.generateSeatNumber()
 
         # get name of user, check if in passengers table
-        checkIfPassenger = "SELECT * FROM passengers WHERE email = '" + self.email + "'"
+        user_name = input("Please enter your name.")
+        print(user_name)
+        checkIfPassenger = "SELECT * FROM passengers WHERE email = '" + self.email + "' and name = '" + user_name + "'"
         db = main.getDatabase()
         db.execute(checkIfPassenger)
         isPassenger = db.cursor.fetchall()
 
         if len(isPassenger) == 0:    # not in passengers table 
             # ask for name and country
-            (name, country) = self.promptForNameAndCountry()
+            country = self.promptForCountry()
 
             # add to passenger table
-            addPassenger = "INSERT INTO passengers VALUES('" + self.email + "', '" + name + "', '" + country + "'"
+            addPassenger = "INSERT INTO passengers VALUES('" + self.email + "', '" + user_name + "', '" + country + "')"
             db.execute(addPassenger)
             db.execute("commit")
             #db.close()
         else: 
-            # name and country already exists
-            name = self.name
-            country = self.country
-            tno = self.generateTicketNumber()
-            tno = str(tno)
+            # already in passenger table
+            country = isPassenger[0][2]
+            
+        tno = self.generateTicketNumber()
+        tno = str(tno)
 
-            # check if seat is still available by searching for the flights again
-            flights = sf.searchFlights(src, dst, dep_date)
+        # check if seat is still available by searching for the flights again
+        flights = sf.searchFlights(src, dst, dep_date)
 
-            if len(flights) == 0:
-                print("Sorry, this seat is no longer available. Please try another flight.")
-                self.showMenu()
+        if len(flights) == 0:
+            print("Sorry, this seat is no longer available. Please try another flight.")
+            self.showMenu()
 
-            else: 
-                insertTicket = "INSERT INTO tickets VALUES('" + tno + "', '" + name + "', '" + self.email + "', '" + str(price) + "')"
-                insertBooking = "INSERT INTO bookings VALUES('" + tno + "', '" + flightno + "', '" + fare + "', to_date('" + dep_date + "', 'DD/MM/YYYY'), '" + seat + "')"
-                
-                try: 
-                    db.execute(insertTicket)
+        else: 
+            insertTicket = "INSERT INTO tickets VALUES('" + tno + "', '" + name + "', '" + self.email + "', '" + str(price) + "')"
+            insertBooking = "INSERT INTO bookings VALUES('" + tno + "', '" + flightno + "', '" + fare + "', to_date('" + dep_date + "', 'DD/MM/YYYY'), '" + seat + "')"
+            
+            try: 
+                db.execute(insertTicket)
+                db.execute("commit")  
+                db.execute(insertBooking)
+                db.execute("commit")  
+                if (flightno2 != None):
+                    tno2 = self.generateTicketNumber()
+                    tno2 = str(tno2)
+                    seat2 = self.generateSeatNumber()
+                    insertTicket2 = "INSERT INTO tickets VALUES('" + tno2 + "', '" + name + "', '" + self.email + "', '" + str(price) + "')"
+                    insertBooking2 = "INSERT INTO bookings VALUES('" + tno + "', '" + flightno2 + "', '" + fare2 + "', to_date('" + dep_date + "', 'DD/MM/YYYY'), '" + seat + "')"
+                    db.execute(insertTicket2)
                     db.execute("commit")  
-                    db.execute(insertBooking)
+                    db.execute(insertBooking2)
                     db.execute("commit")  
-                    if (flightno2 != None):
-                        tno2 = self.generateTicketNumber()
-                        tno2 = str(tno2)
-                        seat2 = self.generateSeatNumber()
-                        insertTicket2 = "INSERT INTO tickets VALUES('" + tno2 + "', '" + name + "', '" + self.email + "', '" + str(price) + "')"
-                        insertBooking2 = "INSERT INTO bookings VALUES('" + tno + "', '" + flightno2 + "', '" + fare2 + "', to_date('" + dep_date + "', 'DD/MM/YYYY'), '" + seat + "')"
-                        db.execute(insertTicket2)
-                        db.execute("commit")  
-                        db.execute(insertBooking2)
-                        db.execute("commit")  
-                        tix = tno + ", " + tno2
-                    tix = tno
-                    print("Your flight has been booked with the ticket number(s): " + tix + ". Returning to main menu...\n")
-                except cx_Oracle.DatabaseError as exc:
-                    error = exc.args
-                    print( sys.stderr, "Oracle code:", error.code)
-                    print( sys.stderr, "Oracle message:", error.message)
-                self.showMenu()  
+                    tix = tno + ", " + tno2
+                tix = tno
+                print("Your flight has been booked with the ticket number(s): " + tix + ". Returning to main menu...\n")
+            except cx_Oracle.DatabaseError as exc:
+                error = exc.args
+                print( sys.stderr, "Oracle code:", error.code)
+                print( sys.stderr, "Oracle message:", error.message)
+            self.showMenu()  
 
     def generateTicketNumber(self):
         """
@@ -366,7 +355,6 @@ class UserMenu(object):
         db.execute(dBook)
         db.execute(dTix)
         db.execute("commit")
-        #db.close()
         print("Booking successfully cancelled. Returning to main menu.\n")
         self.showMenu()
 
@@ -380,15 +368,13 @@ class UserMenu(object):
         db.execute("commit")
         print("Successfully logged out.\n")
 
-    def promptForNameAndCountry(self):
+    def promptForCountry(self):
         """
         Used when user is not in the passengers table.
         """
         while True:
-            userInput = input("Please enter your name and country, separated by a space:  ")
-            (name, country) = userInput.split(' ')
-            if len(name) > 0 and len(country) > 0: return name, country
-            else: print("Please enter valid input. \n")  
+            country = input("Please enter your country: ")
+            if len(country) > 0: return country    
 
 
 
