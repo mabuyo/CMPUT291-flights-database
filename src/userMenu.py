@@ -286,7 +286,7 @@ class UserMenu(object):
             country = self.promptForCountry()
 
             # add to passenger table
-            db.execute(INSERT_PASSENGER.format(self.email, self.name, self.country))
+            db.execute(INSERT_PASSENGER.format(self.email, user_name, country))
             db.execute("commit")
             #db.close()
         else: 
